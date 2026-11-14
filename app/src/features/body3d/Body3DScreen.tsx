@@ -11,6 +11,7 @@ import { BodyScene } from './scene/BodyScene'
 import type { Focus } from './scene/CameraRig'
 import { LAYERS, type LayerId } from './theme'
 import { DetailPanel } from './ui/DetailPanel'
+import { AskHalo } from '../../components/AskHalo'
 import { GuidePanel } from './ui/GuidePanel'
 import { Tour } from './ui/Tour'
 import { LayerControl } from './ui/LayerControl'
@@ -24,11 +25,15 @@ interface Props {
   env: EnvironmentId
   /** Go to the Check-in tab. */
   onCheckIn: () => void
+  onEmergency: () => void
+  /** Ask the body view to show a system (e.g. from Ask HALO on another tab). */
+  focusRequest?: { id: SystemId; nonce: number } | null
+  onOpenTab: (tab: 'checkin' | 'trends' | 'radiation' | 'learn') => void
 }
 
 const RANK: Record<Status, number> = { warning: 3, caution: 2, nominal: 1, nodata: 0 }
 
-export function Body3DScreen({ crewId, readings, findings, statuses, env, onCheckIn }: Props) {
+export function Body3DScreen({ crewId, readings, findings, statuses, env, onCheckIn, onEmergency, onOpenTab, focusRequest }: Props) {
   const views = useMemo(() => buildSystemViews(readings, findings, statuses), [readings, findings, statuses])
   const [selected, setSelected] = useState<SystemId | null>(null)
   const [expanded, setExpanded] = useState(false)
@@ -156,6 +161,12 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
     },
     [select],
   )
+
+  // Show a system when another tab asked for it (Ask HALO on Check-in → "show it on the body").
+  useEffect(() => {
+    if (focusRequest) select(focusRequest.id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusRequest?.nonce])
 
   // One plain sentence telling the user what to do next.
   const hint = (() => {
@@ -296,6 +307,26 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
       <AnimatePresence>
         {expanded && selected && <DetailPanel view={views[selected]} readings={readings} env={env} onClose={() => setExpanded(false)} />}
       </AnimatePresence>
+
+      {!expanded && (
+        <AskHalo
+          context={{
+            environment: { kind: environment.kind, place: environment.label, gravity: environment.gravity, earthOneWaySeconds: environment.oneWayDelaySec, escalation: environment.escalation, priorities: environment.priorities, insights: environment.insights },
+            crewId,
+            systems: Object.values(views).map((v) => ({
+              id: v.id,
+              name: v.label,
+              status: v.status,
+              trend: v.trend,
+              primary: v.primary ? { metric: v.primary.metric, value: v.primary.value, personalNormal: Math.round(v.primary.baselineMean * 10) / 10, streakDays: v.primary.streak } : null,
+            })),
+            selectedSystem: selected,
+          }}
+          onOpenSystem={select}
+          onEmergency={onEmergency}
+          onOpenTab={onOpenTab}
+        />
+      )}
 
       <Tour open={tourOpen} onClose={closeTour} />
     </div>

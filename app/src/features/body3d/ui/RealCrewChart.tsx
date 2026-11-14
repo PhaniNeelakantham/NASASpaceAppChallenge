@@ -68,7 +68,7 @@ export function RealCrewChart({ metric = 'lymphocytes', title = 'Lymphocytes (im
             <ReferenceArea x1="L-3" x2="R+1" fill="#7dd3fc" fillOpacity={0.06} label={{ value: 'flight', fill: '#8b98b8', fontSize: 10, position: 'insideTop' }} />
             <XAxis dataKey="tp" stroke="#64748b" fontSize={10} tickLine={false} />
             <YAxis stroke="#64748b" fontSize={10} tickLine={false} domain={['auto', 'auto']} />
-            <Tooltip contentStyle={{ background: '#0b1224', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12 }} />
+            <Tooltip isAnimationActive={false} contentStyle={{ background: '#0b1224', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12 }} />
             {crewIds.map((c, i) => (
               <Line key={c} dataKey={c} stroke={CREW_COLORS[i % 4]} strokeWidth={1} dot={false} strokeOpacity={0.6} isAnimationActive={false} />
             ))}

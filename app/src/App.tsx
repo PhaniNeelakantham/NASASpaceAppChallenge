@@ -12,6 +12,7 @@ import { TrendsScreen } from './features/trends/TrendsScreen'
 import { CommsProvider } from './state/comms'
 import { SpaceWeatherProvider } from './state/spaceWeather'
 import type { EnvironmentId } from './state/mission'
+import type { SystemId } from './types'
 
 type Tab = 'body' | 'checkin' | 'trends' | 'radiation' | 'learn'
 const TABS: { id: Tab; label: string }[] = [
@@ -28,6 +29,11 @@ export default function App() {
   const [crewId, setCrewId] = useState('c2')
   const [night, setNight] = useState(false)
   const [emergency, setEmergency] = useState(false)
+  const [focusRequest, setFocusRequest] = useState<{ id: SystemId; nonce: number } | null>(null)
+  const showOnBody = (id: SystemId) => {
+    setTab('body')
+    setFocusRequest({ id, nonce: Date.now() })
+  }
 
   const readings = READINGS[crewId]
   const findings = useMemo(() => evaluate(readings), [readings])
@@ -39,10 +45,10 @@ export default function App() {
     <div className={`flex h-full flex-col ${night ? 'night' : ''}`}>
       <TopBar env={env} onEnv={setEnv} crewId={crewId} onCrew={setCrewId} night={night} onNight={() => setNight(!night)} onEmergency={() => setEmergency(true)} />
       <main className="relative flex-1 overflow-auto">
-        {tab === 'body' && <Body3DScreen crewId={crewId} readings={readings} findings={findings} statuses={statuses} env={env} onCheckIn={() => setTab('checkin')} />}
-        {tab === 'checkin' && <CheckInScreen />}
+        {tab === 'body' && <Body3DScreen crewId={crewId} readings={readings} findings={findings} statuses={statuses} env={env} onCheckIn={() => setTab('checkin')} onEmergency={() => setEmergency(true)} onOpenTab={setTab} focusRequest={focusRequest} />}
+        {tab === 'checkin' && <CheckInScreen env={env} onOpenSystem={showOnBody} onEmergency={() => setEmergency(true)} onOpenTab={setTab} />}
         {tab === 'trends' && <TrendsScreen readings={readings} />}
-        {tab === 'radiation' && <RadiationScreen />}
+        {tab === 'radiation' && <RadiationScreen env={env} />}
         {tab === 'learn' && <LearnScreen />}
       </main>
       <nav className="grid grid-cols-5 border-t border-white/5 bg-space-950">

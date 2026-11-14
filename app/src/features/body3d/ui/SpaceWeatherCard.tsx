@@ -3,20 +3,16 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { SourceBadge } from '../../../components/SourceBadge'
 import type { EnvironmentId } from '../../../state/mission'
 import { useSpaceWeather, type DonkiEvent } from '../../../state/spaceWeather'
+import { EVENT_INFO, stormScale } from '../../../content/spaceWeather'
 import { STATUS_HEX } from '../theme'
 
-const TYPE_LABEL: Record<DonkiEvent['type'], string> = {
-  SEP: 'Solar particle event',
-  FLR: 'Solar flare',
-  CME: 'Coronal mass ejection',
-  GST: 'Geomagnetic storm',
-}
 
 function describe(e: DonkiEvent): string {
-  if (e.type === 'FLR' && e.classType) return `${TYPE_LABEL.FLR} · class ${e.classType}`
-  if (e.type === 'GST' && e.kp) return `${TYPE_LABEL.GST} · Kp ${e.kp}`
-  if (e.type === 'CME' && e.speed) return `${TYPE_LABEL.CME} · ${Math.round(e.speed)} km/s`
-  return TYPE_LABEL[e.type]
+  const label = EVENT_INFO[e.type].label
+  if (e.type === 'FLR' && e.classType) return `${label} · class ${e.classType}`
+  if (e.type === 'GST' && e.kp) return `${label} · Kp ${Math.round(e.kp)} (${stormScale(e.kp)})`
+  if (e.type === 'CME' && e.speed) return `${label} · ${Math.round(e.speed)} km/s`
+  return label
 }
 
 /** Space weather from NASA DONKI, interpreted for the current environment. */

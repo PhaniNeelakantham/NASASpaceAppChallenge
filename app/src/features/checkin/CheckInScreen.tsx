@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
+import { AskHalo, type AppTab } from '../../components/AskHalo'
 import { METRICS } from '../../content/metrics'
-import type { MetricId } from '../../types'
+import { ENVIRONMENTS, type EnvironmentId } from '../../state/mission'
+import type { MetricId, SystemId } from '../../types'
 
 // Step-by-step daily check-in (≤ 3 min). TODO (B): persist to IndexedDB via Dexie,
 // add "How do I measure this?" content, camera heart-rate step, symptom chips.
@@ -13,13 +15,46 @@ const STEPS: { metric: MetricId; howTo: string; min: number; max: number; step: 
   { metric: 'mood', howTo: '1 = very low, 10 = excellent. Your answer stays private unless you share it.', min: 1, max: 10, step: 1 },
 ]
 
-export function CheckInScreen() {
+interface Props {
+  env: EnvironmentId
+  onOpenSystem: (id: SystemId) => void
+  onEmergency: () => void
+  onOpenTab: (tab: AppTab) => void
+}
+
+export function CheckInScreen({ env, onOpenSystem, onEmergency, onOpenTab }: Props) {
   const [i, setI] = useState(0)
   const [values, setValues] = useState<Partial<Record<MetricId, number>>>({})
   const done = i >= STEPS.length
+  const e = ENVIRONMENTS[env]
+  const cur = STEPS[Math.min(i, STEPS.length - 1)]
+  const curDef = METRICS[cur.metric]
+
+  // Ask HALO knows which measurement is on screen, so "how do I do this?" just works.
+  const drawer = (
+    <AskHalo
+      context={{
+        screen: 'daily check-in',
+        environment: { kind: e.kind, place: e.label, gravity: e.gravity },
+        currentMeasurement: done ? null : { name: curDef.label, unit: curDef.unit, appInstructions: cur.howTo, step: `${i + 1} of ${STEPS.length}` },
+        enteredSoFar: Object.fromEntries(Object.entries(values).map(([k, v]) => [METRICS[k as MetricId].label, `${v} ${METRICS[k as MetricId].unit}`.trim()])),
+      }}
+      subtitle="Help with this measurement — how to take it and what it means"
+      starters={[`How do I measure ${curDef.label.toLowerCase()} in ${e.gravity === '0 g' ? 'zero g' : 'this gravity'}?`, `Why does ${curDef.label.toLowerCase()} matter in space?`, 'What if my value looks unusual?']}
+      onOpenSystem={onOpenSystem}
+      onEmergency={onEmergency}
+      onOpenTab={onOpenTab}
+    />
+  )
+  const shell = (content: ReactNode) => (
+    <div className="relative h-full min-h-[520px] overflow-hidden">
+      <div className="h-full overflow-y-auto pr-14">{content}</div>
+      {drawer}
+    </div>
+  )
 
   if (done) {
-    return (
+    return shell(
       <div className="mx-auto max-w-xl p-6">
         <h2 className="mb-4 text-2xl font-bold">Check-in complete ✓</h2>
         <ul className="rounded-xl bg-space-900 p-4">
@@ -35,7 +70,7 @@ export function CheckInScreen() {
         <button onClick={() => { setI(0); setValues({}) }} className="mt-4 min-h-11 rounded-lg bg-space-800 px-4">
           Start again
         </button>
-      </div>
+      </div>,
     )
   }
 
@@ -43,7 +78,7 @@ export function CheckInScreen() {
   const def = METRICS[s.metric]
   const val = values[s.metric] ?? Math.round(((s.min + s.max) / 2) / s.step) * s.step
 
-  return (
+  return shell(
     <div className="mx-auto flex max-w-xl flex-col gap-6 p-6">
       <div className="h-2 overflow-hidden rounded bg-space-800">
         <div className="h-full bg-accent transition-all" style={{ width: `${(i / STEPS.length) * 100}%` }} />
@@ -74,6 +109,6 @@ export function CheckInScreen() {
           Save & next
         </button>
       </div>
-    </div>
+    </div>,
   )
 }

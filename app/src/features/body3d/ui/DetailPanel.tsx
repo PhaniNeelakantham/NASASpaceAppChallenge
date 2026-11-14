@@ -39,7 +39,7 @@ function MetricChart({ metric, readings, color }: { metric: MetricId; readings: 
             <CartesianGrid stroke="rgba(148,163,184,0.08)" vertical={false} />
             <XAxis dataKey="day" stroke="#64748b" fontSize={10} tickLine={false} />
             <YAxis stroke="#64748b" fontSize={10} domain={['auto', 'auto']} tickLine={false} />
-            <Tooltip contentStyle={{ background: '#0b1224', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12 }} />
+            <Tooltip isAnimationActive={false} contentStyle={{ background: '#0b1224', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, fontSize: 12 }} />
             <Area dataKey="band" stroke="none" fill="#2dd4bf" fillOpacity={0.1} isAnimationActive={false} />
             {def.warnHigh !== undefined && <ReferenceLine y={def.warnHigh} stroke="#ff5a4e" strokeDasharray="3 3" />}
             {def.warnLow !== undefined && <ReferenceLine y={def.warnLow} stroke="#ff5a4e" strokeDasharray="3 3" />}
