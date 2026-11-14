@@ -1,5 +1,6 @@
 import { CREW, CURRENT_DAY } from '../data/syntheticCrew'
 import { useComms } from '../state/comms'
+import { useRoutine } from '../state/routine'
 import { ENVIRONMENT_LIST, ENVIRONMENTS, formatCountdown, formatDelay, type EnvironmentId } from '../state/mission'
 
 interface Props {
@@ -40,6 +41,24 @@ function CommsChip() {
   )
 }
 
+/** Level + check-in streak, always visible so the astronaut sees progress at a glance. */
+function RoutineChip() {
+  const { stats } = useRoutine()
+  return (
+    <div
+      className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5"
+      title={`${stats.level.rank} · ${stats.xp} XP`}
+    >
+      <Stat label="Level" value={`${stats.level.level} · ${stats.level.rank}`} tone="text-accent" />
+      <Stat
+        label="Check-in streak"
+        value={`${stats.streaks.checkin} d${stats.checkinAtRisk ? ' ▲' : ''}`}
+        tone={stats.checkinAtRisk ? 'text-caution' : 'text-nominal'}
+      />
+    </div>
+  )
+}
+
 export function TopBar({ env, onEnv, crewId, onCrew, night, onNight, onEmergency }: Props) {
   const e = ENVIRONMENTS[env]
   const delayed = e.groundAvailable === 'delayed'
@@ -75,6 +94,7 @@ export function TopBar({ env, onEnv, crewId, onCrew, night, onNight, onEmergency
         />
       </div>
       <CommsChip />
+      <RoutineChip />
 
       <div className="ml-auto flex items-center gap-2">
         <button

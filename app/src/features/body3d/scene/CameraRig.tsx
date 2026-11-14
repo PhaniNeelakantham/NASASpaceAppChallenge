@@ -14,8 +14,8 @@ export interface Focus {
 
 // Constant objects so React never re-applies them (which would reset the target every render).
 const START_TARGET: [number, number, number] = [0, 0.86, 0]
-// Right-drag (and left-drag / one-finger swipe) orbits; middle-drag pans; wheel / pinch zooms.
-const MOUSE_BUTTONS = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.PAN, RIGHT: THREE.MOUSE.ROTATE }
+// Left-drag (and one-finger swipe) orbits; right-drag and middle-drag pan (move the view); wheel / pinch zooms.
+const MOUSE_BUTTONS = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.PAN, RIGHT: THREE.MOUSE.PAN }
 const TOUCHES = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }
 
 export function CameraRig({ focus, shiftX = 0 }: { focus: Focus | null; shiftX?: number }) {
@@ -71,6 +71,7 @@ export function CameraRig({ focus, shiftX = 0 }: { focus: Focus | null; shiftX?:
       rotateSpeed={0.55}
       zoomSpeed={0.7}
       panSpeed={0.6}
+      screenSpacePanning
       minDistance={0.45}
       maxDistance={4.5}
       minPolarAngle={0.2}
