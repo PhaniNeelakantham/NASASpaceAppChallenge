@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Bloom, EffectComposer } from '@react-three/postprocessing'
 import { ENVIRONMENTS, type EnvironmentId } from '../../../state/mission'
@@ -23,6 +23,8 @@ export interface BodySceneProps {
   showAllLabels: boolean
   focus: Focus | null
   onTap: (id: SystemId) => void
+  /** Extra 3D content (pain markers, ultrasound probe). */
+  children?: ReactNode
   onExpand: () => void
   onClose: () => void
   onBackground: () => void
@@ -73,6 +75,8 @@ export function BodyScene(p: BodySceneProps) {
             onClose={p.onClose}
           />
         ))}
+
+        {p.children}
 
         {/* Glow only at High detail. */}
         {p.detail === 'high' && (

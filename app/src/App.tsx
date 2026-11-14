@@ -13,16 +13,18 @@ import { TrendsScreen } from './features/trends/TrendsScreen'
 import { ReminderToast } from './features/today/ReminderToast'
 import { TodayScreen } from './features/today/TodayScreen'
 import { RoutineProvider, useRoutine } from './state/routine'
+import { CareScreen, type CareTool } from './features/care/CareScreen'
 import { CommsProvider } from './state/comms'
 import { SpaceWeatherProvider } from './state/spaceWeather'
 import type { EnvironmentId } from './state/mission'
 import type { SystemId } from './types'
 
-type Tab = 'body' | 'today' | 'checkin' | 'trends' | 'radiation' | 'learn'
+type Tab = 'body' | 'today' | 'checkin' | 'care' | 'trends' | 'radiation' | 'learn'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'body', label: 'Body' },
   { id: 'today', label: 'Today' },
   { id: 'checkin', label: 'Check-in' },
+  { id: 'care', label: 'Care' },
   { id: 'trends', label: 'Trends' },
   { id: 'radiation', label: 'Radiation' },
   { id: 'learn', label: 'Learn' },
@@ -46,10 +48,17 @@ export default function App() {
   const [crewId, setCrewId] = usePersistentState('halo.app.crew', 'c2')
   const [night, setNight] = usePersistentState('halo.app.night', false)
   const [emergency, setEmergency] = useState(false)
+<<<<<<< HEAD
+  const [careTool, setCareTool] = useState<CareTool>('photos')
+  const openCare = (t: CareTool) => {
+    setCareTool(t)
+    setTab('care')
+=======
   const [focusRequest, setFocusRequest] = useState<{ id: SystemId; nonce: number } | null>(null)
   const showOnBody = (id: SystemId) => {
     setTab('body')
     setFocusRequest({ id, nonce: Date.now() })
+>>>>>>> 588fcc035ec5c5a0c400c7995e6aa4470ebd2704
   }
 
   const readings = READINGS[crewId]
@@ -63,14 +72,21 @@ export default function App() {
     <div className={`flex h-full flex-col ${night ? 'night' : ''}`}>
       <TopBar env={env} onEnv={setEnv} crewId={crewId} onCrew={setCrewId} night={night} onNight={() => setNight(!night)} onEmergency={() => setEmergency(true)} />
       <main className="relative flex-1 overflow-auto">
+<<<<<<< HEAD
+        {tab === 'body' && <Body3DScreen crewId={crewId} readings={readings} findings={findings} statuses={statuses} env={env} onCheckIn={() => setTab('checkin')} onEmergency={() => setEmergency(true)} />}
+        {tab === 'today' && <TodayScreen statuses={statuses} env={env} onCheckIn={() => setTab('checkin')} onOpenCare={openCare} />}
+        {tab === 'checkin' && <CheckInScreen onFinish={() => setTab('today')} />}
+        {tab === 'care' && <CareScreen crewId={crewId} env={env} tool={careTool} onTool={setCareTool} />}
+=======
         {tab === 'body' && <Body3DScreen crewId={crewId} readings={readings} findings={findings} statuses={statuses} env={env} onCheckIn={() => setTab('checkin')} onEmergency={() => setEmergency(true)} onOpenTab={setTab} focusRequest={focusRequest} />}
         {tab === 'today' && <TodayScreen statuses={statuses} env={env} onCheckIn={() => setTab('checkin')} />}
         {tab === 'checkin' && <CheckInScreen env={env} onOpenSystem={showOnBody} onEmergency={() => setEmergency(true)} onOpenTab={setTab} onFinish={() => setTab('today')} />}
+>>>>>>> 588fcc035ec5c5a0c400c7995e6aa4470ebd2704
         {tab === 'trends' && <TrendsScreen readings={readings} />}
         {tab === 'radiation' && <RadiationScreen env={env} />}
         {tab === 'learn' && <LearnScreen />}
       </main>
-      <nav className="grid grid-cols-6 border-t border-white/5 bg-space-950">
+      <nav className="grid grid-cols-7 border-t border-white/5 bg-space-950">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -86,7 +102,7 @@ export default function App() {
           </button>
         ))}
       </nav>
-      {tab !== 'today' && !emergency && <ReminderToast onOpen={() => setTab('today')} />}
+      {tab !== 'today' && tab !== 'body' && !emergency && <ReminderToast onOpen={() => setTab('today')} />}
       <AnimatePresence>{emergency && <EmergencyScreen env={env} userId={crewId} onClose={() => setEmergency(false)} />}</AnimatePresence>
     </div>
     </RoutineProvider>
