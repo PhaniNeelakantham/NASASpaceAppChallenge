@@ -53,6 +53,8 @@ def slim(kind: str, e: dict) -> dict:
     if kind == "CME":
         an = next((a for a in (e.get("cmeAnalyses") or []) if a.get("isMostAccurate")), None) or (e.get("cmeAnalyses") or [None])[0]
         return {"type": "CME", "time": e.get("startTime"), "id": e.get("activityID"), "speed": an.get("speed") if an else None, "link": e.get("link")}
+    if kind == "RBE":
+        return {"type": "RBE", "time": e.get("eventTime"), "id": e.get("rbeID"), "link": e.get("link")}
     if kind == "GST":
         kp = max((k.get("kpIndex") or 0 for k in e.get("allKpIndex") or []), default=None)
         return {"type": "GST", "time": e.get("startTime"), "id": e.get("gstID"), "kp": kp, "link": e.get("link")}
@@ -62,7 +64,8 @@ def slim(kind: str, e: dict) -> dict:
 def window(start: dt.date, end: dt.date, key: str, missing: list) -> list:
     """Fetch each event type separately; a failure (rate limit, outage) is recorded, not fatal."""
     events = []
-    for kind in ("SEP", "FLR", "CME", "GST"):
+    # FLR (solar flares) was removed from api.nasa.gov (404); RBE = radiation belt enhancements.
+    for kind in ("SEP", "CME", "GST", "RBE"):
         try:
             events += [slim(kind, e) for e in donki(kind, start, end, key)]
         except Exception as ex:  # noqa: BLE001 - keep partial data
@@ -143,12 +146,25 @@ def summarize_cbc(cbc: dict) -> dict:
     }
 
 
+def local_key() -> str | None:
+    """Read VITE_NASA_API_KEY from app/.env.local without printing it."""
+    f = ROOT / "app" / ".env.local"
+    if not f.exists():
+        return None
+    for line in f.read_text(encoding="utf-8").splitlines():
+        if line.strip().startswith("VITE_NASA_API_KEY="):
+            v = line.split("=", 1)[1].strip().strip('"').strip("'")
+            return v or None
+    return None
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--api-key", default="DEMO_KEY")
+    ap.add_argument("--api-key", default=None, help="defaults to VITE_NASA_API_KEY in app/.env.local, then DEMO_KEY")
     ap.add_argument("--today", default=str(dt.date.today()))
     ap.add_argument("--only", choices=["donki", "cbc"], help="fetch just one source")
     a = ap.parse_args()
+    a.api_key = a.api_key or local_key() or "DEMO_KEY"
     OUT.mkdir(parents=True, exist_ok=True)
 
     if a.only != "cbc":

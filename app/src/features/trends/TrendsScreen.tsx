@@ -41,7 +41,7 @@ export function TrendsScreen({ readings }: { readings: Reading[] }) {
             <CartesianGrid stroke="var(--color-space-700)" />
             <XAxis dataKey="day" stroke="var(--color-ink-dim)" label={{ value: 'Mission day', position: 'insideBottom', offset: -2, fill: 'var(--color-ink-dim)' }} />
             <YAxis stroke="var(--color-ink-dim)" domain={['auto', 'auto']} />
-            <Tooltip contentStyle={{ background: 'var(--color-space-800)', border: 'none' }} />
+            <Tooltip isAnimationActive={false} contentStyle={{ background: 'var(--color-space-800)', border: 'none' }} />
             <Area dataKey="band" stroke="none" fill="var(--color-nominal)" fillOpacity={0.12} isAnimationActive={false} />
             {def.warnHigh !== undefined && <ReferenceLine y={def.warnHigh} stroke="var(--color-warning)" strokeDasharray="4 4" />}
             {def.warnLow !== undefined && <ReferenceLine y={def.warnLow} stroke="var(--color-warning)" strokeDasharray="4 4" />}

@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 import { useEffect, useRef, useState } from 'react'
+=======
+import { useEffect, useState, type ReactNode } from 'react'
+import { AskHalo, type AppTab } from '../../components/AskHalo'
+>>>>>>> 588fcc035ec5c5a0c400c7995e6aa4470ebd2704
 import { METRICS } from '../../content/metrics'
+import { ENVIRONMENTS, type EnvironmentId } from '../../state/mission'
 import { useRoutine } from '../../state/routine'
-import type { MetricId } from '../../types'
+import type { MetricId, SystemId } from '../../types'
 import { CameraPulse } from './CameraPulse'
 import { parseCommand, parseSpokenNumber, speak, useListener, voiceSupported } from './voice'
 
@@ -16,7 +22,16 @@ const STEPS: { metric: MetricId; howTo: string; min: number; max: number; step: 
   { metric: 'mood', howTo: '1 = very low, 10 = excellent. Your answer stays private unless you share it.', min: 1, max: 10, step: 1, ask: 'How is your mood, from one to ten?' },
 ]
 
-export function CheckInScreen({ onFinish }: { onFinish?: () => void }) {
+interface Props {
+  env: EnvironmentId
+  onOpenSystem: (id: SystemId) => void
+  onEmergency: () => void
+  onOpenTab: (tab: AppTab) => void
+  /** Shown as "Back to Today" once the check-in is complete. */
+  onFinish?: () => void
+}
+
+export function CheckInScreen({ env, onOpenSystem, onEmergency, onOpenTab, onFinish }: Props) {
   const [i, setI] = useState(0)
   const [values, setValues] = useState<Partial<Record<MetricId, number>>>({})
   const [camera, setCamera] = useState(false)
@@ -24,6 +39,32 @@ export function CheckInScreen({ onFinish }: { onFinish?: () => void }) {
   const [fromCamera, setFromCamera] = useState<Set<MetricId>>(new Set())
   const { complete } = useRoutine()
   const done = i >= STEPS.length
+  const e = ENVIRONMENTS[env]
+  const cur = STEPS[Math.min(i, STEPS.length - 1)]
+  const curDef = METRICS[cur.metric]
+
+  // Ask HALO knows which measurement is on screen, so "how do I do this?" just works.
+  const drawer = (
+    <AskHalo
+      context={{
+        screen: 'daily check-in',
+        environment: { kind: e.kind, place: e.label, gravity: e.gravity },
+        currentMeasurement: done ? null : { name: curDef.label, unit: curDef.unit, appInstructions: cur.howTo, step: `${i + 1} of ${STEPS.length}` },
+        enteredSoFar: Object.fromEntries(Object.entries(values).map(([k, v]) => [METRICS[k as MetricId].label, `${v} ${METRICS[k as MetricId].unit}`.trim()])),
+      }}
+      subtitle="Help with this measurement — how to take it and what it means"
+      starters={[`How do I measure ${curDef.label.toLowerCase()} in ${e.gravity === '0 g' ? 'zero g' : 'this gravity'}?`, `Why does ${curDef.label.toLowerCase()} matter in space?`, 'What if my value looks unusual?']}
+      onOpenSystem={onOpenSystem}
+      onEmergency={onEmergency}
+      onOpenTab={onOpenTab}
+    />
+  )
+  const shell = (content: ReactNode) => (
+    <div className="relative h-full min-h-[520px] overflow-hidden">
+      <div className="h-full overflow-y-auto pr-14">{content}</div>
+      {drawer}
+    </div>
+  )
 
   useEffect(() => {
     if (done) complete('checkin')
@@ -75,7 +116,7 @@ export function CheckInScreen({ onFinish }: { onFinish?: () => void }) {
   }, [done, handsFree])
 
   if (done) {
-    return (
+    return shell(
       <div className="mx-auto max-w-xl p-6">
         <h2 className="mb-1 text-2xl font-bold">Check-in complete ✓</h2>
         <p className="mb-4 font-mono text-xs uppercase tracking-wider text-nominal">+30 XP · streak kept alive</p>
@@ -100,7 +141,7 @@ export function CheckInScreen({ onFinish }: { onFinish?: () => void }) {
             </button>
           )}
         </div>
-      </div>
+      </div>,
     )
   }
 
@@ -108,7 +149,7 @@ export function CheckInScreen({ onFinish }: { onFinish?: () => void }) {
   const def = METRICS[s.metric]
   const val = values[s.metric] ?? Math.round(((s.min + s.max) / 2) / s.step) * s.step
 
-  return (
+  return shell(
     <div className="mx-auto flex max-w-xl flex-col gap-6 p-6">
       <div className="h-2 overflow-hidden rounded bg-space-800">
         <div className="h-full bg-accent transition-all" style={{ width: `${(i / STEPS.length) * 100}%` }} />
@@ -189,6 +230,6 @@ export function CheckInScreen({ onFinish }: { onFinish?: () => void }) {
           Save & next
         </button>
       </div>
-    </div>
+    </div>,
   )
 }

@@ -3,7 +3,7 @@ import type { EnvironmentId } from './mission'
 
 /** A NASA DONKI space-weather event (trimmed to what HALO shows). */
 export interface DonkiEvent {
-  type: 'SEP' | 'FLR' | 'CME' | 'GST'
+  type: 'SEP' | 'FLR' | 'CME' | 'GST' | 'RBE'
   time: string
   id: string
   instruments?: string[]
@@ -53,7 +53,7 @@ const Ctx = createContext<Api | null>(null)
 const BASE = import.meta.env.BASE_URL
 const KEY = (import.meta.env.VITE_NASA_API_KEY as string | undefined) || 'DEMO_KEY'
 // The May 2024 scenario is assessed as if "now" were just after the particle event began.
-const SCENARIO_NOW: Record<Exclude<ScenarioId, 'today'>, string> = { may2024: '2024-05-12T12:00:00Z' }
+const SCENARIO_NOW: Record<Exclude<ScenarioId, 'today'>, string> = { may2024: '2024-05-10T18:00:00Z' }
 
 const SHELTER: Record<EnvironmentId, string> = {
   iss: 'Move to the more shielded modules if Mission Control asks; postpone spacewalks.',
@@ -69,7 +69,7 @@ async function fetchLive(signal: AbortSignal): Promise<DonkiEvent[]> {
   const end = new Date()
   const start = new Date(end.getTime() - 30 * 864e5)
   const d = (x: Date) => x.toISOString().slice(0, 10)
-  const kinds = ['SEP', 'FLR', 'CME', 'GST'] as const
+  const kinds = ['SEP', 'CME', 'GST', 'RBE'] as const // FLR was removed from api.nasa.gov
   const results = await Promise.all(
     kinds.map(async (k) => {
       const r = await fetch(`https://api.nasa.gov/DONKI/${k}?startDate=${d(start)}&endDate=${d(end)}&api_key=${KEY}`, { signal })
@@ -78,8 +78,11 @@ async function fetchLive(signal: AbortSignal): Promise<DonkiEvent[]> {
       const arr = txt.trim() ? (JSON.parse(txt) as Record<string, unknown>[]) : []
       return arr.map((e): DonkiEvent => {
         if (k === 'SEP') return { type: k, time: e.eventTime as string, id: e.sepID as string, link: e.link as string }
-        if (k === 'FLR') return { type: k, time: (e.peakTime ?? e.beginTime) as string, id: e.flrID as string, classType: e.classType as string, link: e.link as string }
-        if (k === 'CME') return { type: k, time: e.startTime as string, id: e.activityID as string, link: e.link as string }
+        if (k === 'RBE') return { type: k, time: e.eventTime as string, id: e.rbeID as string, link: e.link as string }
+        if (k === 'CME') {
+          const an = ((e.cmeAnalyses as { isMostAccurate?: boolean; speed?: number }[]) ?? []).find((a) => a.isMostAccurate)
+          return { type: k, time: e.startTime as string, id: e.activityID as string, speed: an?.speed ?? null, link: e.link as string }
+        }
         const kp = Math.max(0, ...(((e.allKpIndex as { kpIndex: number }[]) ?? []).map((x) => x.kpIndex)))
         return { type: k, time: e.startTime as string, id: e.gstID as string, kp, link: e.link as string }
       })
@@ -129,6 +132,8 @@ export function SpaceWeatherProvider({ children }: { children: ReactNode }) {
     const source: FeedSource = scenarioData ? 'snapshot' : live ? 'live' : snap && snap.recent.events.length > 0 ? 'snapshot' : 'unavailable'
     const asOf = scenario !== 'today' ? new Date(SCENARIO_NOW[scenario]) : new Date()
     const visible = events.filter((e) => new Date(e.time) <= asOf)
+    // Live refresh pulls 30 days; the bundled snapshot covers 60.
+    const windowDays = scenarioData ? 14 : live ? 30 : 60
 
     const assess = (env: EnvironmentId): SpaceWeatherAssessment => {
       const seps = visible.filter((e) => e.type === 'SEP')
@@ -159,7 +164,7 @@ export function SpaceWeatherProvider({ children }: { children: ReactNode }) {
       return {
         level: 'nominal',
         title: 'Space weather quiet',
-        detail: lastSep ? `Last solar particle event: ${new Date(lastSep.time).toUTCString().slice(5, 16)}.` : 'No solar particle events in the last 60 days.',
+        detail: lastSep ? `Last solar particle event: ${new Date(lastSep.time).toUTCString().slice(5, 16)}.` : `No solar particle events in the last ${windowDays} days.`,
         lastSep,
         events: visible,
       }

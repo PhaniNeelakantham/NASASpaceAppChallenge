@@ -4,6 +4,7 @@ import { NODES, PROTOCOLS, txt, type Ctx, type Protocol } from '../../content/em
 import { CREW, READINGS } from '../../data/syntheticCrew'
 import { useComms } from '../../state/comms'
 import { ENVIRONMENTS, formatCountdown, formatDelay, type EnvironmentId } from '../../state/mission'
+import { EmergencyCopilot } from './EmergencyCopilot'
 import { CprCoach, fmt, speak, StepTimer, VitalsQuick } from './tools'
 
 interface Props {
@@ -110,6 +111,37 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
   const elapsed = tick - startedAt
   const step = history.length
 
+  // What the AI copilot is told about the situation (no free-form app internals).
+  const aiContext = useMemo(() => {
+    const r = patientId ? READINGS[patientId]?.at(-1) : undefined
+    return {
+      environment: { kind: e.kind, place: e.label, gravity: e.gravity, earthOneWaySeconds: e.oneWayDelaySec, escalation: e.escalation.mode, firstContact: e.escalation.firstContact, evacuation: e.evacuation },
+      patient: patient ? { name: patient.name, role: patient.role, lastReadings: r ? { ...r.values, symptoms: r.symptoms } : null } : null,
+      guides: PROTOCOLS.map((x) => ({ id: x.id, title: x.title })),
+      runningGuide: protocol ? { id: protocol.id, title: protocol.title } : null,
+      currentStep: node ? { kind: node.kind, instruction: txt(node.text, c), detail: txt(node.detail, c), answers: node.kind === 'ask' ? ['yes', 'no'] : node.kind === 'do' ? ['done'] : [] } : null,
+      recentLog: log.slice(-8).map((l) => `[${fmt(l.at - startedAt)}] ${l.text}`),
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patientId, protocol, nodeId, log, env])
+
+  const aiChooseProtocol = (id: string, reason: string) => {
+    const p = PROTOCOLS.find((x) => x.id === id)
+    if (!p) return
+    addLog(`AI suggested “${p.title}” (${reason}) — confirmed by rescuer`)
+    startProtocol(p)
+  }
+  const aiAnswer = (answer: 'yes' | 'no' | 'done', reason: string) => {
+    if (!node) return
+    const tag = ` (AI-suggested: “${reason}”, confirmed)`
+    if (node.kind === 'ask' && answer !== 'done') go(answer === 'yes' ? node.yes : node.no, `${answer === 'yes' ? 'Yes' : 'No'}${tag}`)
+    if (node.kind === 'do' && answer === 'done') go(node.next, `Done${tag}`)
+  }
+  const aiConsult = (summary: string) => {
+    send(protocol?.system ?? 'heart', env, `EMERGENCY — ${summary}`)
+    addLog('Consult sent (AI-drafted, confirmed by rescuer)')
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -163,6 +195,18 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
       <div className="grid min-h-0 flex-1 gap-4 p-4 lg:grid-cols-[1fr_360px]">
         {/* Main column */}
         <main className="flex min-h-0 flex-col overflow-y-auto overflow-x-hidden">
+          {patient && (
+            <EmergencyCopilot
+              context={aiContext}
+              currentNodeId={nodeId ?? null}
+              currentKind={node?.kind ?? null}
+              voice={voice}
+              onChooseProtocol={aiChooseProtocol}
+              onAnswer={aiAnswer}
+              onLog={addLog}
+              onConsult={aiConsult}
+            />
+          )}
           {!patient && (
             <section>
               <p className="mb-4 text-2xl font-semibold">Who needs help?</p>
