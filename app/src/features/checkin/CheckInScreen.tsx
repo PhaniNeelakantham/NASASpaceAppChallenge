@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-import { useEffect, useRef, useState } from 'react'
-=======
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { AskHalo, type AppTab } from '../../components/AskHalo'
->>>>>>> 588fcc035ec5c5a0c400c7995e6aa4470ebd2704
 import { METRICS } from '../../content/metrics'
 import { ENVIRONMENTS, type EnvironmentId } from '../../state/mission'
 import { today, usePersistentState } from '../../state/persist'
@@ -39,8 +35,10 @@ export function CheckInScreen({ env, onOpenSystem, onEmergency, onOpenTab, onFin
   const [progress, setProgress] = usePersistentState<{ i: number; values: Partial<Record<MetricId, number>> }>(progressKey, { i: 0, values: {} })
   const i = progress.i
   const values = progress.values
-  const setI = (n: number) => setProgress((p) => ({ ...p, i: n }))
-  const setValues = (v: Partial<Record<MetricId, number>>) => setProgress((p) => ({ ...p, values: v }))
+  // Accept a value or an updater (the voice check-in uses updaters), like React's own setters.
+  type Vals = Partial<Record<MetricId, number>>
+  const setI = (n: number | ((prev: number) => number)) => setProgress((p) => ({ ...p, i: typeof n === 'function' ? n(p.i) : n }))
+  const setValues = (v: Vals | ((prev: Vals) => Vals)) => setProgress((p) => ({ ...p, values: typeof v === 'function' ? v(p.values) : v }))
   const [camera, setCamera] = useState(false)
   const [camKey, setCamKey] = useState(0)
   const [fromCamera, setFromCamera] = useState<Set<MetricId>>(new Set())

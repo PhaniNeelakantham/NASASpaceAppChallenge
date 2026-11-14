@@ -48,17 +48,15 @@ export default function App() {
   const [crewId, setCrewId] = usePersistentState('halo.app.crew', 'c2')
   const [night, setNight] = usePersistentState('halo.app.night', false)
   const [emergency, setEmergency] = useState(false)
-<<<<<<< HEAD
   const [careTool, setCareTool] = useState<CareTool>('photos')
   const openCare = (t: CareTool) => {
     setCareTool(t)
     setTab('care')
-=======
+  }
   const [focusRequest, setFocusRequest] = useState<{ id: SystemId; nonce: number } | null>(null)
   const showOnBody = (id: SystemId) => {
     setTab('body')
     setFocusRequest({ id, nonce: Date.now() })
->>>>>>> 588fcc035ec5c5a0c400c7995e6aa4470ebd2704
   }
 
   const readings = READINGS[crewId]
@@ -72,16 +70,10 @@ export default function App() {
     <div className={`flex h-full flex-col ${night ? 'night' : ''}`}>
       <TopBar env={env} onEnv={setEnv} crewId={crewId} onCrew={setCrewId} night={night} onNight={() => setNight(!night)} onEmergency={() => setEmergency(true)} />
       <main className="relative flex-1 overflow-auto">
-<<<<<<< HEAD
-        {tab === 'body' && <Body3DScreen crewId={crewId} readings={readings} findings={findings} statuses={statuses} env={env} onCheckIn={() => setTab('checkin')} onEmergency={() => setEmergency(true)} />}
-        {tab === 'today' && <TodayScreen statuses={statuses} env={env} onCheckIn={() => setTab('checkin')} onOpenCare={openCare} />}
-        {tab === 'checkin' && <CheckInScreen onFinish={() => setTab('today')} />}
-        {tab === 'care' && <CareScreen crewId={crewId} env={env} tool={careTool} onTool={setCareTool} />}
-=======
         {tab === 'body' && <Body3DScreen crewId={crewId} readings={readings} findings={findings} statuses={statuses} env={env} onCheckIn={() => setTab('checkin')} onEmergency={() => setEmergency(true)} onOpenTab={setTab} focusRequest={focusRequest} />}
-        {tab === 'today' && <TodayScreen statuses={statuses} env={env} onCheckIn={() => setTab('checkin')} />}
+        {tab === 'today' && <TodayScreen statuses={statuses} env={env} onCheckIn={() => setTab('checkin')} onOpenCare={openCare} />}
         {tab === 'checkin' && <CheckInScreen env={env} onOpenSystem={showOnBody} onEmergency={() => setEmergency(true)} onOpenTab={setTab} onFinish={() => setTab('today')} />}
->>>>>>> 588fcc035ec5c5a0c400c7995e6aa4470ebd2704
+        {tab === 'care' && <CareScreen crewId={crewId} env={env} tool={careTool} onTool={setCareTool} />}
         {tab === 'trends' && <TrendsScreen readings={readings} />}
         {tab === 'radiation' && <RadiationScreen env={env} />}
         {tab === 'learn' && <LearnScreen />}

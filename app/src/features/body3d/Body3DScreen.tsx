@@ -32,21 +32,14 @@ interface Props {
   /** Go to the Check-in tab. */
   onCheckIn: () => void
   onEmergency: () => void
-<<<<<<< HEAD
-=======
   /** Ask the body view to show a system (e.g. from Ask HALO on another tab). */
   focusRequest?: { id: SystemId; nonce: number } | null
   onOpenTab: (tab: 'checkin' | 'trends' | 'radiation' | 'learn') => void
->>>>>>> 588fcc035ec5c5a0c400c7995e6aa4470ebd2704
 }
 
 const RANK: Record<Status, number> = { warning: 3, caution: 2, nominal: 1, nodata: 0 }
 
-<<<<<<< HEAD
-export function Body3DScreen({ crewId, readings, findings, statuses, env, onCheckIn, onEmergency }: Props) {
-=======
 export function Body3DScreen({ crewId, readings, findings, statuses, env, onCheckIn, onEmergency, onOpenTab, focusRequest }: Props) {
->>>>>>> 588fcc035ec5c5a0c400c7995e6aa4470ebd2704
   const views = useMemo(() => buildSystemViews(readings, findings, statuses), [readings, findings, statuses])
   const [selected, setSelected] = useState<SystemId | null>(null)
   const [expanded, setExpanded] = useState(false)
