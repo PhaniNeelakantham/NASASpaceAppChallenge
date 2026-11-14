@@ -1,0 +1,27 @@
+{
+ "source": "NASA DONKI (CCMC) via api.nasa.gov",
+ "fetchedAt": "2026-11-14T19:39:45+00:00",
+ "recent": {
+  "start": "2026-09-16",
+  "end": "2026-11-14",
+  "events": []
+ },
+ "scenarios": {
+  "may2024": {
+   "label": "May 2024 solar storm (Gannon storm)",
+   "start": "2024-05-08",
+   "end": "2024-05-22",
+   "events": []
+  }
+ },
+ "missing": [
+  "SEP 2026-09-16..2026-11-14: HTTP Error 429: Too Many Requests",
+  "FLR 2026-09-16..2026-11-14: HTTP Error 429: Too Many Requests",
+  "CME 2026-09-16..2026-11-14: HTTP Error 429: Too Many Requests",
+  "GST 2026-09-16..2026-11-14: HTTP Error 429: Too Many Requests",
+  "SEP 2024-05-08..2024-05-22: HTTP Error 429: Too Many Requests",
+  "FLR 2024-05-08..2024-05-22: HTTP Error 429: Too Many Requests",
+  "CME 2024-05-08..2024-05-22: HTTP Error 429: Too Many Requests",
+  "GST 2024-05-08..2024-05-22: HTTP Error 429: Too Many Requests"
+ ]
+}

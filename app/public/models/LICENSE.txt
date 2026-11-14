@@ -1,0 +1,5 @@
+3D models in this folder are derived from grab3d.com assets released under CC0 1.0 (public domain):
+- muscles.glb  <- "Human Muscles" (human-muscles-light.glb)  https://grab3d.com/models/anatomy/human-muscles/
+- skeleton.glb <- "Human Skeleton" (human-skeleton-light.glb) https://grab3d.com/models/anatomy/human-skeleton/
+Processed with gltf-transform: simplified ~50%, textures downsized, meshopt-compressed.
+Originals kept in /data/models-raw (not shipped with the app).
