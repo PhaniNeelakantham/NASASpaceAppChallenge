@@ -216,7 +216,7 @@ export function TodayScreen({ statuses, env, onCheckIn, onOpenCare }: Props) {
         )}
       </AnimatePresence>
 
-      {/* Badge unlocked */}
+      {/* Milestone recorded */}
       <AnimatePresence>
         {newBadge && (
           <motion.div
@@ -227,19 +227,19 @@ export function TodayScreen({ statuses, env, onCheckIn, onOpenCare }: Props) {
             onClick={r.clearNewBadge}
           >
             <motion.div
-              initial={{ scale: 0.6, rotate: -8 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 220, damping: 14 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
               className="glass flex flex-col items-center gap-3 p-8 text-center"
             >
-              <span className="section-h !mb-0 text-accent">Badge unlocked</span>
-              <span className="grid h-24 w-24 place-items-center rounded-full border-2 border-caution bg-caution/10 text-5xl text-caution shadow-[0_0_50px_-10px_var(--color-caution)]">
+              <span className="section-h !mb-0 text-accent">Milestone recorded</span>
+              <span className="grid h-20 w-20 place-items-center rounded-xl border border-accent/60 bg-accent/10 font-mono text-2xl font-bold text-accent">
                 {newBadge.glyph}
               </span>
               <span className="text-2xl font-bold">{newBadge.label}</span>
               <span className="text-sm text-ink-dim">{newBadge.how}</span>
               <button onClick={r.clearNewBadge} className={`${btn} mt-2 bg-accent text-space-950`}>
-                Nice!
+                Acknowledge
               </button>
             </motion.div>
           </motion.div>
@@ -378,7 +378,7 @@ export function TodayScreen({ statuses, env, onCheckIn, onOpenCare }: Props) {
 
         <div className="glass p-4">
           <div className="section-h">
-            Badges · {stats.badges.size}/{BADGES.length}
+            Milestones · {stats.badges.size}/{BADGES.length}
           </div>
           <div className="grid grid-cols-4 gap-2">
             {BADGES.map((b) => {
@@ -386,11 +386,11 @@ export function TodayScreen({ statuses, env, onCheckIn, onOpenCare }: Props) {
               return (
                 <div key={b.id} title={`${b.label} — ${b.how}`} className="flex flex-col items-center gap-1 text-center">
                   <span
-                    className={`grid h-12 w-12 place-items-center rounded-full border text-xl ${
-                      got ? 'border-caution/70 bg-caution/10 text-caution shadow-[0_0_16px_-4px_var(--color-caution)]' : 'border-white/10 text-white/20'
+                    className={`grid h-11 w-11 place-items-center rounded-lg border font-mono text-[11px] font-bold ${
+                      got ? 'border-accent/50 bg-accent/10 text-accent' : 'border-white/10 text-white/25'
                     }`}
                   >
-                    {got ? b.glyph : '?'}
+                    {b.glyph}
                   </span>
                   <span className={`text-[10px] leading-tight ${got ? '' : 'text-ink-dim'}`}>{b.label}</span>
                 </div>

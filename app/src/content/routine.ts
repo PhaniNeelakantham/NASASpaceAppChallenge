@@ -175,14 +175,14 @@ export interface Badge {
 }
 
 export const BADGES: Badge[] = [
-  { id: 'first-light', label: 'First Light', glyph: '✦', how: 'Complete a check-in' },
-  { id: 'week', label: 'Full Orbit', glyph: '◐', how: '7-day check-in streak' },
-  { id: 'month', label: 'Long Haul', glyph: '◉', how: '30-day check-in streak' },
-  { id: 'iron', label: 'Iron Bones', glyph: '▣', how: 'Both workouts 7 days in a row' },
-  { id: 'hydro', label: 'Hydro Hero', glyph: '◆', how: 'Water goal 5 days in a row' },
-  { id: 'sharp', label: 'Sharp Shooter', glyph: '⌖', how: 'Reaction test with zero lapses' },
-  { id: 'sleep', label: 'Night Watch', glyph: '☾', how: 'Wind-down 5 days in a row' },
-  { id: 'sweep', label: 'Clean Sweep', glyph: '★', how: 'Every daily task in one day' },
+  { id: 'first-light', label: 'Baseline Established', glyph: 'BL', how: 'First daily check-in logged' },
+  { id: 'week', label: '7-Day Monitoring', glyph: '7D', how: '7 consecutive daily check-ins' },
+  { id: 'month', label: '30-Day Monitoring', glyph: '30D', how: '30 consecutive daily check-ins' },
+  { id: 'iron', label: 'Countermeasure Adherence', glyph: 'CM', how: 'Resistance and cardio sessions 7 days running' },
+  { id: 'hydro', label: 'Hydration Protocol', glyph: 'H₂O', how: 'Fluid target met 5 days running' },
+  { id: 'sharp', label: 'Vigilance · Zero Lapses', glyph: 'PVT', how: 'Reaction test with no lapses' },
+  { id: 'sleep', label: 'Sleep Hygiene', glyph: 'SLP', how: 'Wind-down routine 5 nights running' },
+  { id: 'sweep', label: 'Full Protocol Day', glyph: 'FP', how: 'Every daily task completed in one day' },
 ]
 
 export const XP_PER_LEVEL = 600
