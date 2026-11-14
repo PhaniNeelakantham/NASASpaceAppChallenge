@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ALL_TASKS, BADGES, DAILY_TASKS, WATER_GOAL, levelFor, type RoutineTask } from '../content/routine'
 import { CREW } from '../data/syntheticCrew'
+import { usePersistentState } from './persist'
 
 // Daily routine + gamification. Today's progress is saved in localStorage per crew member;
 // the previous 30 days are SIMULATED (deterministic) so streaks and badges have a history to show.
@@ -216,7 +217,7 @@ export function RoutineProvider({ crewId, children }: { crewId: string; children
   const [tick, setTick] = useState(() => Date.now())
   const [lastGain, setLastGain] = useState<RoutineApi['lastGain']>(null)
   const [newBadge, setNewBadge] = useState<string | null>(null)
-  const [snoozed, setSnoozed] = useState<Record<string, number>>({})
+  const [snoozed, setSnoozed] = usePersistentState<Record<string, number>>('halo.routine.snoozed', {})
   const [notificationsOn, setNotificationsOn] = useState(
     () => typeof Notification !== 'undefined' && Notification.permission === 'granted',
   )

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useComms } from '../../../state/comms'
+import { today, usePersistentState } from '../../../state/persist'
 import { useSpaceWeather } from '../../../state/spaceWeather'
 import { ENVIRONMENTS, formatDelay, type EnvironmentId } from '../../../state/mission'
 import type { SystemId } from '../../../types'
@@ -49,8 +50,8 @@ export function GuidePanel({ env, alerts, priorities, reviewed, onShow, onOpenPr
   const e = ENVIRONMENTS[env]
   const { messages } = useComms()
   const [envOpen, setEnvOpen] = useState(false)
-  const [routineDone, setRoutineDone] = useState<Record<string, boolean>>({})
-  const [shelterAck, setShelterAck] = useState<string | null>(null)
+  const [routineDone, setRoutineDone] = usePersistentState<Record<string, boolean>>(`halo.guide.routine.${today()}`, {})
+  const [shelterAck, setShelterAck] = usePersistentState<string | null>('halo.guide.shelterAck', null)
   const sw = useSpaceWeather().assess(env)
   const radiation = sw.level !== 'nominal' && sw.action ? sw : null
   const radKey = `${env}:${sw.lastSep?.id ?? sw.title}`

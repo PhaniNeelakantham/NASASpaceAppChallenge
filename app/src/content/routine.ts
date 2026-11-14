@@ -167,14 +167,12 @@ export const BADGES: Badge[] = [
   { id: 'sweep', label: 'Clean Sweep', glyph: '★', how: 'Every daily task in one day' },
 ]
 
-export const RANKS = ['Cadet', 'Specialist', 'Flight Engineer', 'Mission Specialist', 'Pilot', 'Commander', 'Station Legend']
 export const XP_PER_LEVEL = 600
 
 export function levelFor(xp: number) {
   const level = Math.floor(xp / XP_PER_LEVEL) + 1
   return {
     level,
-    rank: RANKS[Math.min(RANKS.length - 1, Math.floor((level - 1) / 2))],
     into: xp % XP_PER_LEVEL,
     next: XP_PER_LEVEL,
   }

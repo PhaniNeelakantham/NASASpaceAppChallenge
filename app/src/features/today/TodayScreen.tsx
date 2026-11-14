@@ -308,7 +308,7 @@ export function TodayScreen({ statuses, env, onCheckIn }: Props) {
               </div>
             </Ring>
             <div>
-              <div className="text-lg font-bold">{stats.level.rank}</div>
+              <div className="text-lg font-bold">Level {stats.level.level}</div>
               <div className="font-mono text-xs text-ink-dim">
                 {stats.xp.toLocaleString()} XP · {stats.level.next - stats.level.into} to next level
               </div>

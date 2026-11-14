@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { usePersistentState } from './state/persist'
 import { AnimatePresence } from 'framer-motion'
 import { TopBar } from './components/TopBar'
 import { EmergencyScreen } from './features/emergency/EmergencyScreen'
@@ -39,10 +40,11 @@ function DueDot() {
 }
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>('body')
-  const [env, setEnv] = useState<EnvironmentId>('transit')
-  const [crewId, setCrewId] = useState('c2')
-  const [night, setNight] = useState(false)
+  // Remembered in this browser, so a reload comes back to where you were.
+  const [tab, setTab] = usePersistentState<Tab>('halo.app.tab', 'body')
+  const [env, setEnv] = usePersistentState<EnvironmentId>('halo.app.env', 'transit')
+  const [crewId, setCrewId] = usePersistentState('halo.app.crew', 'c2')
+  const [night, setNight] = usePersistentState('halo.app.night', false)
   const [emergency, setEmergency] = useState(false)
   const [focusRequest, setFocusRequest] = useState<{ id: SystemId; nonce: number } | null>(null)
   const showOnBody = (id: SystemId) => {

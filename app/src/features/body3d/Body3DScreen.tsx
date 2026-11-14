@@ -4,6 +4,7 @@ import { StatusBadge } from '../../components/StatusBadge'
 import { SYSTEMS } from '../../content/systems'
 import { ENVIRONMENTS, formatDelay, type EnvironmentId } from '../../state/mission'
 import type { Finding, Reading, Status, SystemId } from '../../types'
+import { readJSON, today, usePersistentState, writeJSON } from '../../state/persist'
 import { buildSystemViews } from './health'
 import { NODES, ZONES, type ZoneId } from './nodes/nodeConfig'
 import type { Detail } from './anatomy/models'
@@ -66,21 +67,18 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
 
   const [layersOpen, setLayersOpen] = useState(false)
   const [showAllLabels, setShowAllLabels] = useState(false)
-  const [reviewed, setReviewed] = useState<Set<SystemId>>(new Set())
-  const [tourOpen, setTourOpen] = useState(() => {
-    try {
-      return localStorage.getItem('halo.tourDone') !== '1'
-    } catch {
-      return true
-    }
-  })
+  // Which systems the astronaut has reviewed today (advances the guide) — saved per crew member per day.
+  const [reviewedList, setReviewedList] = usePersistentState<SystemId[]>(`halo.guide.reviewed.${crewId}.${today()}`, [])
+  const reviewed = useMemo(() => new Set(reviewedList), [reviewedList])
+  // The tutorial is shown once per crew member (one shared tablet, several astronauts).
+  const tourKey = `halo.tourDone.${crewId}`
+  const [tourOpen, setTourOpen] = useState(() => !readJSON(tourKey, false))
+  useEffect(() => {
+    setTourOpen(!readJSON(tourKey, false))
+  }, [tourKey])
   const closeTour = () => {
     setTourOpen(false)
-    try {
-      localStorage.setItem('halo.tourDone', '1')
-    } catch {
-      /* storage unavailable */
-    }
+    writeJSON(tourKey, true)
   }
   const environment = ENVIRONMENTS[env]
   const priorities = useMemo(() => new Set(environment.priorities), [environment])
@@ -146,12 +144,11 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
   useEffect(() => {
     setSelected(null)
     setExpanded(false)
-    setReviewed(new Set())
   }, [crewId])
 
   // Opening a system's full details counts as having reviewed it (advances the guide).
   useEffect(() => {
-    if (expanded && selected) setReviewed((r) => (r.has(selected) ? r : new Set(r).add(selected)))
+    if (expanded && selected) setReviewedList((r) => (r.includes(selected) ? r : [...r, selected]))
   }, [expanded, selected])
 
   const openProcedure = useCallback(

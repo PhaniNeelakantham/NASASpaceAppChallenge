@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { AskHalo, type AppTab } from '../../components/AskHalo'
 import { METRICS } from '../../content/metrics'
 import { ENVIRONMENTS, type EnvironmentId } from '../../state/mission'
+import { today, usePersistentState } from '../../state/persist'
 import { useRoutine } from '../../state/routine'
 import type { MetricId, SystemId } from '../../types'
 import { CameraPulse } from './CameraPulse'
@@ -27,12 +28,17 @@ interface Props {
 }
 
 export function CheckInScreen({ env, onOpenSystem, onEmergency, onOpenTab, onFinish }: Props) {
-  const [i, setI] = useState(0)
-  const [values, setValues] = useState<Partial<Record<MetricId, number>>>({})
+  const { complete, crewId } = useRoutine()
+  // Saved per crew member per day, so leaving the tab (or reloading) resumes the check-in.
+  const progressKey = `halo.checkin.${crewId}.${today()}`
+  const [progress, setProgress] = usePersistentState<{ i: number; values: Partial<Record<MetricId, number>> }>(progressKey, { i: 0, values: {} })
+  const i = progress.i
+  const values = progress.values
+  const setI = (n: number) => setProgress((p) => ({ ...p, i: n }))
+  const setValues = (v: Partial<Record<MetricId, number>>) => setProgress((p) => ({ ...p, values: v }))
   const [camera, setCamera] = useState(false)
   const [camKey, setCamKey] = useState(0)
   const [fromCamera, setFromCamera] = useState<Set<MetricId>>(new Set())
-  const { complete } = useRoutine()
   const done = i >= STEPS.length
   const e = ENVIRONMENTS[env]
   const cur = STEPS[Math.min(i, STEPS.length - 1)]

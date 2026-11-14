@@ -47,9 +47,9 @@ function RoutineChip() {
   return (
     <div
       className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5"
-      title={`${stats.level.rank} · ${stats.xp} XP`}
+      title={`Level ${stats.level.level} · ${stats.xp} XP`}
     >
-      <Stat label="Level" value={`${stats.level.level} · ${stats.level.rank}`} tone="text-accent" />
+      <Stat label="Level" value={String(stats.level.level)} tone="text-accent" />
       <Stat
         label="Check-in streak"
         value={`${stats.streaks.checkin} d${stats.checkinAtRisk ? ' ▲' : ''}`}
