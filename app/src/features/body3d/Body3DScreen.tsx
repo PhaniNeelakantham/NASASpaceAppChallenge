@@ -15,6 +15,11 @@ import { GuidePanel } from './ui/GuidePanel'
 import { Tour } from './ui/Tour'
 import { LayerControl } from './ui/LayerControl'
 import { ZonePills } from './ui/ZonePills'
+import { useCrewStore, uid } from '../../state/crewStore'
+import { PainLayer, type PainSpot } from './pain/PainLayer'
+import { PainForm, PainSpotCard } from './pain/PainPanel'
+import { seedPain, type PainStore, type RegionId, type Side } from './pain/painContent'
+import { ProbeMarker, UltrasoundPanel, type UsExam } from './ultrasound/Ultrasound'
 
 interface Props {
   crewId: string
@@ -24,11 +29,12 @@ interface Props {
   env: EnvironmentId
   /** Go to the Check-in tab. */
   onCheckIn: () => void
+  onEmergency: () => void
 }
 
 const RANK: Record<Status, number> = { warning: 3, caution: 2, nominal: 1, nodata: 0 }
 
-export function Body3DScreen({ crewId, readings, findings, statuses, env, onCheckIn }: Props) {
+export function Body3DScreen({ crewId, readings, findings, statuses, env, onCheckIn, onEmergency }: Props) {
   const views = useMemo(() => buildSystemViews(readings, findings, statuses), [readings, findings, statuses])
   const [selected, setSelected] = useState<SystemId | null>(null)
   const [expanded, setExpanded] = useState(false)
@@ -78,6 +84,50 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
     }
   }
   const environment = ENVIRONMENTS[env]
+
+  // --- Pain map: tap where it hurts ---
+  const [pain, setPain] = useCrewStore<PainStore>('pain', crewId, seedPain)
+  const [painMode, setPainMode] = useState(false)
+  const [draft, setDraft] = useState<{ pos: [number, number, number]; region: RegionId; side?: Side; spot?: string; severity: number } | null>(null)
+  const [painSpot, setPainSpot] = useState<string | null>(null)
+  const spots = useMemo<PainSpot[]>(() => {
+    const by = new Map<string, PainSpot['history']>()
+    for (const r of [...pain.reports].sort((a, b) => a.at - b.at)) {
+      if (pain.resolved.includes(r.spot)) continue
+      by.set(r.spot, [...(by.get(r.spot) ?? []), r])
+    }
+    return [...by.entries()].map(([spot, history]) => ({ spot, history, latest: history[history.length - 1] }))
+  }, [pain])
+  const activeSpot = spots.find((s) => s.spot === painSpot) ?? null
+
+  const pickPain = useCallback(
+    (pos: [number, number, number], region: RegionId, side?: Side) => {
+      // A tap close to an existing spot adds to its history instead of starting a new one.
+      const near = spots.find((s) => Math.hypot(s.latest.pos[0] - pos[0], s.latest.pos[1] - pos[1], s.latest.pos[2] - pos[2]) < 0.07)
+      setDraft({ pos: near ? near.latest.pos : pos, region: near ? near.latest.region : region, side: near ? near.latest.side : side, spot: near?.spot, severity: near?.latest.severity ?? 4 })
+      setPainMode(false)
+      setPainSpot(null)
+      setFocus({ target: pos, distance: 1.1, nonce: Date.now() })
+    },
+    [spots],
+  )
+
+  // --- Ultrasound guide ---
+  const [usOpen, setUsOpen] = useState(false)
+  const [usExam, setUsExam] = useState<UsExam | null>(null)
+  const [usStep, setUsStep] = useState(0)
+  const chooseExam = (e: UsExam | null) => {
+    setUsExam(e)
+    setUsStep(0)
+    if (e) setFocus({ target: e.probe, distance: 0.75, nonce: Date.now() })
+  }
+
+  useEffect(() => {
+    setPainMode(false)
+    setDraft(null)
+    setPainSpot(null)
+  }, [crewId])
+
   const priorities = useMemo(() => new Set(environment.priorities), [environment])
   const alerts = Object.values(views)
     .filter((v) => v.status === 'caution' || v.status === 'warning')
@@ -159,6 +209,8 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
 
   // One plain sentence telling the user what to do next.
   const hint = (() => {
+    if (painMode) return 'Tap the spot on the body that hurts. Drag to turn the body if it is on the back.'
+    if (usExam) return 'Follow the steps on the right. The blue probe shows where to place it.'
     if (expanded) return 'Work through the numbered procedure. Escalate only if its conditions apply. Press ✕ or Esc to go back.'
     if (selected) return 'Read the summary, then press “Full details” for the procedure. Tap empty space to go back.'
     const next = alerts.find((a) => !reviewed.has(a.id))
@@ -186,7 +238,21 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
           setExpanded(false)
           setSelected(null)
         }}
-      />
+      >
+        <PainLayer
+          mode={painMode}
+          spots={spots}
+          draft={draft}
+          selectedSpot={painSpot}
+          onPick={pickPain}
+          onSelectSpot={(id) => {
+            setPainSpot(id)
+            setDraft(null)
+            setUsOpen(false)
+          }}
+        />
+        {usOpen && usExam && <ProbeMarker exam={usExam} />}
+      </BodyScene>
 
       {/* Left column: the step-by-step guide (scrolls if the screen is short) */}
       <div className="pointer-events-none absolute bottom-3 left-3 top-3 w-[310px] overflow-y-auto pb-1 [scrollbar-width:thin]">
@@ -227,6 +293,74 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
                 ◧ Layers & view {depth > 0 && '· peeled'}
               </button>
             </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setPainMode((m) => !m)
+                  setDraft(null)
+                  setPainSpot(null)
+                  setUsOpen(false)
+                }}
+                className={`glass flex h-12 items-center gap-2 px-4 font-mono text-xs uppercase tracking-wider ${painMode ? 'border-warning/60 text-warning' : 'text-ink-dim hover:text-ink'}`}
+                aria-pressed={painMode}
+              >
+                ✚ {painMode ? 'Tap the body… (cancel)' : `Report pain${spots.length ? ` · ${spots.length}` : ''}`}
+              </button>
+              <button
+                onClick={() => {
+                  setUsOpen((o) => !o)
+                  setUsExam(null)
+                  setPainMode(false)
+                  setDraft(null)
+                  setPainSpot(null)
+                }}
+                className={`glass flex h-12 items-center gap-2 px-4 font-mono text-xs uppercase tracking-wider ${usOpen ? 'text-accent' : 'text-ink-dim hover:text-ink'}`}
+                aria-pressed={usOpen}
+              >
+                ◎ Ultrasound
+              </button>
+            </div>
+            <AnimatePresence mode="wait">
+              {draft && (
+                <PainForm
+                  key={`draft-${draft.pos.join()}`}
+                  region={draft.region}
+                  side={draft.side}
+                  severity={draft.severity}
+                  onSeverity={(n) => setDraft((d) => (d ? { ...d, severity: n } : d))}
+                  onCancel={() => setDraft(null)}
+                  onEmergency={onEmergency}
+                  onSave={(kind, note) => {
+                    const spot = draft.spot ?? uid()
+                    setPain((p) => ({
+                      ...p,
+                      reports: [...p.reports, { id: uid(), spot, region: draft.region, side: draft.side, pos: draft.pos, severity: draft.severity, kind, note, at: Date.now() }],
+                    }))
+                    setDraft(null)
+                    setPainSpot(spot)
+                  }}
+                />
+              )}
+              {!draft && activeSpot && (
+                <PainSpotCard
+                  key={activeSpot.spot}
+                  spot={activeSpot}
+                  onClose={() => setPainSpot(null)}
+                  onEmergency={onEmergency}
+                  onResolve={() => {
+                    setPain((p) => ({ ...p, resolved: [...p.resolved, activeSpot.spot] }))
+                    setPainSpot(null)
+                  }}
+                  onLogAgain={() => {
+                    const l = activeSpot.latest
+                    setDraft({ pos: l.pos, region: l.region, side: l.side, spot: activeSpot.spot, severity: l.severity })
+                  }}
+                />
+              )}
+              {!draft && !activeSpot && usOpen && (
+                <UltrasoundPanel key="us" exam={usExam} step={usStep} env={env} onExam={chooseExam} onStep={setUsStep} onClose={() => { setUsOpen(false); setUsExam(null) }} />
+              )}
+            </AnimatePresence>
             <AnimatePresence>
               {layersOpen && (
                 <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="flex flex-col items-end gap-2">
@@ -267,7 +401,7 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
           <StatusBadge status="caution" />
           <StatusBadge status="warning" />
           <span className="text-accent">◈ Priority here</span>
-          <span className="hidden lg:inline">· Right-drag to rotate · Scroll to zoom · Simulated crew data</span>
+          <span className="hidden lg:inline">· Left-drag to rotate · Right-drag to move · Scroll to zoom · Simulated crew data</span>
         </div>
       </div>
 

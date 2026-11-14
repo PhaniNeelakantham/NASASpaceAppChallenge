@@ -1,3 +1,4 @@
+import type { CareTool } from '../features/care/CareScreen'
 import type { SystemId } from '../types'
 
 /** The five hazards of human spaceflight (NASA Human Research Program). */
@@ -28,6 +29,8 @@ export interface RoutineTask {
   /** Body system this protects; if that system is flagged, the task is marked Priority. */
   system: SystemId
   hazard: Hazard
+  /** Care tool that does this task (opens from the Today list). */
+  open?: CareTool
 }
 
 export const WATER_GOAL = 10 // glasses of 250 mL = 2.5 L
@@ -107,6 +110,7 @@ export const DAILY_TASKS: RoutineTask[] = [
     action: 'mark',
     system: 'mind',
     hazard: 'Isolation',
+    open: 'journal',
   },
   {
     id: 'wind-down',
@@ -126,13 +130,14 @@ export const WEEKLY_TASKS: RoutineTask[] = [
   {
     id: 'vision',
     label: 'Vision check · Amsler grid',
-    howTo: 'Cover one eye, look at the centre dot, note any wavy or missing lines. Repeat for the other eye.',
+    howTo: 'Cover one eye, look at the centre dot, tap any wavy or missing squares. Repeat for the other eye.',
     why: 'Fluid shift can swell the optic nerve (SANS) and change eyesight without pain.',
     cadence: 'weekly',
     xp: 40,
     action: 'mark',
     system: 'eyes',
     hazard: 'Gravity',
+    open: 'vision',
   },
   {
     id: 'mass',
@@ -146,6 +151,19 @@ export const WEEKLY_TASKS: RoutineTask[] = [
     hazard: 'Gravity',
   },
 ]
+
+WEEKLY_TASKS.push({
+  id: 'buddy',
+  label: 'Crew buddy check',
+  howTo: 'Rate how one crewmate has seemed this week: energy, mood, focus, getting along.',
+  why: 'Crewmates often spot tiredness or withdrawal before the person notices it in themselves.',
+  cadence: 'weekly',
+  xp: 30,
+  action: 'mark',
+  system: 'mind',
+  hazard: 'Isolation',
+  open: 'buddy',
+})
 
 export const ALL_TASKS = [...DAILY_TASKS, ...WEEKLY_TASKS]
 

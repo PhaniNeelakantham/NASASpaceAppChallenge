@@ -75,18 +75,21 @@ function seedHistory(crewId: string, today: Date): Record<string, DayLog> {
     if (water >= WATER_GOAL) done.hydration = t
     const sick = crewId === 'c2' && back <= 1
     if (!sick) {
-      did('exercise-res', 0.93)
-      did('exercise-cardio', 0.9)
+      did('exercise-res', 0.85)
+      did('exercise-cardio', 0.78)
     }
-    did('connect', 0.85)
+    did('connect', 0.8)
     if (!(crewId === 'c1' && back <= 4)) did('wind-down', 0.88)
     let pvt: PvtResult | undefined
     if (r() < 0.9) {
       const tired = crewId === 'c1' && back <= 4
-      const lapses = tired ? 5 - back + 1 : r() < 0.6 ? 0 : 1
+      // Simulated history never has a perfect (0-lapse) test, so "Sharp Shooter" is earned live.
+      const lapses = tired ? 5 - back + 1 : r() < 0.6 ? 1 : 2
       pvt = { medianMs: Math.round((tired ? 330 : 255) + r() * 40), lapses, trials: [] }
       done.pvt = t
     }
+    // Leave "Clean Sweep" (every task in one day) for the astronaut to earn live.
+    if (DAILY_TASKS.every((tk) => done[tk.id])) delete done.connect
     out[dayKey(date)] = { done, water, pvt }
   }
   // Weekly tasks for the previous 4 weeks.

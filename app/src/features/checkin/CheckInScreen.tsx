@@ -1,18 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { METRICS } from '../../content/metrics'
 import { useRoutine } from '../../state/routine'
 import type { MetricId } from '../../types'
 import { CameraPulse } from './CameraPulse'
+import { parseCommand, parseSpokenNumber, speak, useListener, voiceSupported } from './voice'
 
 // Step-by-step daily check-in (≤ 3 min). TODO (B): persist to IndexedDB via Dexie,
 // add "How do I measure this?" content, symptom chips.
-const STEPS: { metric: MetricId; howTo: string; min: number; max: number; step: number }[] = [
-  { metric: 'heartRate', howTo: 'Sit still (or anchor your feet) for 1 minute, then read the Bio-Monitor or count your pulse for 30 s × 2.', min: 30, max: 180, step: 1 },
-  { metric: 'systolic', howTo: 'Cuff on upper arm at heart level. Stay still and quiet during the reading.', min: 70, max: 200, step: 1 },
-  { metric: 'spo2', howTo: 'Clip the oximeter on a warm finger and wait for a steady number.', min: 80, max: 100, step: 1 },
-  { metric: 'temperature', howTo: 'Thermometer under the tongue, mouth closed, until it beeps.', min: 34, max: 41, step: 0.1 },
-  { metric: 'sleepHours', howTo: 'From your actigraphy watch, or your best estimate.', min: 0, max: 12, step: 0.25 },
-  { metric: 'mood', howTo: '1 = very low, 10 = excellent. Your answer stays private unless you share it.', min: 1, max: 10, step: 1 },
+const STEPS: { metric: MetricId; howTo: string; min: number; max: number; step: number; ask?: string }[] = [
+  { metric: 'heartRate', howTo: 'Sit still (or anchor your feet) for 1 minute, then read the Bio-Monitor or count your pulse for 30 s × 2.', min: 30, max: 180, step: 1, ask: 'What is your resting heart rate?' },
+  { metric: 'systolic', howTo: 'Cuff on upper arm at heart level. Stay still and quiet during the reading.', min: 70, max: 200, step: 1, ask: 'What is your systolic blood pressure? The top number.' },
+  { metric: 'spo2', howTo: 'Clip the oximeter on a warm finger and wait for a steady number.', min: 80, max: 100, step: 1, ask: 'What is your blood oxygen percentage?' },
+  { metric: 'temperature', howTo: 'Thermometer under the tongue, mouth closed, until it beeps.', min: 34, max: 41, step: 0.1, ask: 'What is your temperature, in degrees Celsius?' },
+  { metric: 'sleepHours', howTo: 'From your actigraphy watch, or your best estimate.', min: 0, max: 12, step: 0.25, ask: 'How many hours did you sleep?' },
+  { metric: 'mood', howTo: '1 = very low, 10 = excellent. Your answer stays private unless you share it.', min: 1, max: 10, step: 1, ask: 'How is your mood, from one to ten?' },
 ]
 
 export function CheckInScreen({ onFinish }: { onFinish?: () => void }) {
@@ -27,6 +28,51 @@ export function CheckInScreen({ onFinish }: { onFinish?: () => void }) {
   useEffect(() => {
     if (done) complete('checkin')
   }, [done, complete])
+
+  // --- Voice: HALO asks each question aloud and listens for the number ---
+  const [handsFree, setHandsFree] = useState(false)
+  const [voiceMsg, setVoiceMsg] = useState('')
+  const tries = useRef(0)
+  const heardRef = useRef<(t: string) => void>(() => {})
+  const { listening, heard, error: voiceError, listen, stop } = useListener((t) => heardRef.current(t))
+
+  heardRef.current = (text: string) => {
+    if (i >= STEPS.length) return
+    const st = STEPS[i]
+    const cmd = parseCommand(text)
+    if (cmd === 'skip') return setI(i + 1)
+    if (cmd === 'back') return setI(Math.max(0, i - 1))
+    if (cmd === 'repeat') return speak(st.ask ?? METRICS[st.metric].label, listen)
+    const n = parseSpokenNumber(text)
+    if (n === null || n < st.min || n > st.max) {
+      tries.current++
+      const msg = n === null ? 'I didn’t catch a number' : `${n} is outside ${st.min} to ${st.max}`
+      setVoiceMsg(`▲ ${msg}. Say it again, or say “skip”.`)
+      if (handsFree && tries.current < 3) speak(`${msg}. Please say it again.`, listen)
+      return
+    }
+    const v = Math.round(n / st.step) * st.step
+    const rounded = Number(v.toFixed(2))
+    setValues((prev) => ({ ...prev, [st.metric]: rounded }))
+    setFromCamera((prev) => new Set([...prev].filter((m) => m !== st.metric)))
+    setVoiceMsg(`● Heard “${text}” → ${rounded}`)
+    if (handsFree) speak(`${rounded}. Saved.`, () => setI((x) => (x === i ? x + 1 : x)))
+  }
+
+  useEffect(() => {
+    if (!handsFree || i >= STEPS.length) return
+    tries.current = 0
+    setVoiceMsg('')
+    speak(STEPS[i].ask ?? METRICS[STEPS[i].metric].label, listen)
+    return () => {
+      stop()
+      window.speechSynthesis?.cancel()
+    }
+  }, [i, handsFree, listen, stop])
+
+  useEffect(() => {
+    if (done && handsFree) speak('Check-in complete. Nice work.')
+  }, [done, handsFree])
 
   if (done) {
     return (
@@ -67,8 +113,34 @@ export function CheckInScreen({ onFinish }: { onFinish?: () => void }) {
       <div className="h-2 overflow-hidden rounded bg-space-800">
         <div className="h-full bg-accent transition-all" style={{ width: `${(i / STEPS.length) * 100}%` }} />
       </div>
-      <h2 className="text-2xl font-bold">{def.label}</h2>
+      <div className="flex items-start gap-3">
+        <h2 className="flex-1 text-2xl font-bold">{def.label}</h2>
+        {voiceSupported() && (
+          <button
+            onClick={() => setHandsFree((h) => !h)}
+            className={`min-h-11 rounded-lg border px-3 font-mono text-xs uppercase tracking-wider ${handsFree ? 'border-accent bg-accent/15 text-accent' : 'border-white/10 text-ink-dim hover:text-ink'}`}
+            aria-pressed={handsFree}
+            title="HALO reads each question aloud and listens for your answer"
+          >
+            🎙 Hands-free {handsFree ? 'on' : 'off'}
+          </button>
+        )}
+      </div>
       <p className="text-ink-dim">{s.howTo}</p>
+      {voiceSupported() && (
+        <div className="flex items-center gap-3 rounded-lg bg-black/25 px-3 py-2 text-sm">
+          <button
+            onClick={() => (listening ? stop() : listen())}
+            className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border text-lg ${listening ? 'animate-pulse border-warning bg-warning/20 text-warning' : 'border-white/15 text-ink-dim hover:text-ink'}`}
+            aria-label={listening ? 'Stop listening' : 'Answer by voice'}
+          >
+            🎙
+          </button>
+          <span className="flex-1 text-ink-dim">
+            {listening ? <>Listening… <span className="text-ink">{heard}</span></> : voiceError ? <span className="text-caution">▲ {voiceError}</span> : voiceMsg || 'Tap the mic and say the number — or “skip”, “back”, “repeat”.'}
+          </span>
+        </div>
+      )}
       {s.metric === 'heartRate' && !camera && (
         <button
           onClick={() => setCamera(true)}
@@ -107,11 +179,11 @@ export function CheckInScreen({ onFinish }: { onFinish?: () => void }) {
         aria-label={def.label}
       />
       <div className="flex gap-3">
-        <button onClick={() => { setCamera(false); setI(i + 1) }} className="min-h-12 flex-1 rounded-lg bg-space-800 text-ink-dim">
+        <button onClick={() => { setCamera(false); setVoiceMsg(''); setI(i + 1) }} className="min-h-12 flex-1 rounded-lg bg-space-800 text-ink-dim">
           Skip
         </button>
         <button
-          onClick={() => { setValues({ ...values, [s.metric]: val }); setCamera(false); setI(i + 1) }}
+          onClick={() => { setValues({ ...values, [s.metric]: val }); setCamera(false); setVoiceMsg(''); setI(i + 1) }}
           className="min-h-12 flex-[2] rounded-lg bg-accent font-bold text-space-950"
         >
           Save & next

@@ -6,12 +6,23 @@ import { CREW } from '../../data/syntheticCrew'
 import { ENVIRONMENTS, type EnvironmentId } from '../../state/mission'
 import { BADGE_BY_ID, useRoutine, type TaskState } from '../../state/routine'
 import type { Status, SystemId } from '../../types'
+import type { CareTool } from '../care/CareScreen'
 import { ReactionTest } from './ReactionTest'
 
 interface Props {
   statuses: Record<SystemId, Status>
   env: EnvironmentId
   onCheckIn: () => void
+  onOpenCare: (t: CareTool) => void
+}
+
+const OPEN_LABEL: Record<CareTool, string> = {
+  photos: 'Open photos',
+  vision: 'Start vision test',
+  buddy: 'Open buddy check',
+  journal: 'Write in journal',
+  medkit: 'Open med kit',
+  landing: 'Start test',
 }
 
 const STATE_META: Record<TaskState, { shape: string; word: string; text: string; border: string }> = {
@@ -49,7 +60,7 @@ function Ring({ pct, size = 64, children }: { pct: number; size?: number; childr
   )
 }
 
-function TaskCard({ task, statuses, onCheckIn }: { task: RoutineTask; statuses: Record<SystemId, Status>; onCheckIn: () => void }) {
+function TaskCard({ task, statuses, onCheckIn, onOpenCare }: { task: RoutineTask; statuses: Record<SystemId, Status>; onCheckIn: () => void; onOpenCare: (t: CareTool) => void }) {
   const r = useRoutine()
   const [pvtOpen, setPvtOpen] = useState(false)
   const state = r.stateOf(task)
@@ -106,6 +117,20 @@ function TaskCard({ task, statuses, onCheckIn }: { task: RoutineTask; statuses: 
         </button>
       </div>
     )
+  } else if (task.open && state !== 'done') {
+    const tool = task.open
+    action = (
+      <div className="flex flex-wrap gap-2">
+        <button onClick={() => onOpenCare(tool)} className={`${btn} bg-accent text-space-950 hover:brightness-110`}>
+          {OPEN_LABEL[tool]} →
+        </button>
+        {tool === 'journal' && (
+          <button onClick={() => r.complete(task.id, task.cadence)} className={`${btn} bg-space-800`}>
+            Mark done
+          </button>
+        )}
+      </div>
+    )
   } else {
     action =
       state === 'done' ? (
@@ -149,7 +174,7 @@ function TaskCard({ task, statuses, onCheckIn }: { task: RoutineTask; statuses: 
   )
 }
 
-export function TodayScreen({ statuses, env, onCheckIn }: Props) {
+export function TodayScreen({ statuses, env, onCheckIn, onOpenCare }: Props) {
   const r = useRoutine()
   const { stats } = r
   const environment = ENVIRONMENTS[env]
@@ -257,7 +282,7 @@ export function TodayScreen({ statuses, env, onCheckIn }: Props) {
 
         <ul className="flex flex-col gap-3">
           {DAILY_TASKS.map((t) => (
-            <TaskCard key={t.id} task={t} statuses={statuses} onCheckIn={onCheckIn} />
+            <TaskCard key={t.id} task={t} statuses={statuses} onCheckIn={onCheckIn} onOpenCare={onOpenCare} />
           ))}
         </ul>
 
@@ -292,7 +317,7 @@ export function TodayScreen({ statuses, env, onCheckIn }: Props) {
           <div className="section-h mt-2">This week</div>
           <ul className="flex flex-col gap-3">
             {WEEKLY_TASKS.map((t) => (
-              <TaskCard key={t.id} task={t} statuses={statuses} onCheckIn={onCheckIn} />
+              <TaskCard key={t.id} task={t} statuses={statuses} onCheckIn={onCheckIn} onOpenCare={onOpenCare} />
             ))}
           </ul>
         </div>
