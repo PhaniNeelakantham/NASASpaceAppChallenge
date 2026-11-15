@@ -4,10 +4,10 @@ import type { CrewMember, Reading } from '../types'
 // produced by the Python generator in /data. Deterministic so the demo is repeatable.
 
 export const CREW: CrewMember[] = [
-  { id: 'c1', name: 'A. Rivera', role: 'Commander' },
-  { id: 'c2', name: 'M. Okafor', role: 'Crew Medical Officer' },
-  { id: 'c3', name: 'K. Tanaka', role: 'Flight Engineer' },
-  { id: 'c4', name: 'L. Novak', role: 'Mission Specialist' },
+  { id: 'c1', name: 'Commander', role: 'Commander' },
+  { id: 'c2', name: 'Crew Medical Officer', role: 'Crew Medical Officer' },
+  { id: 'c3', name: 'Flight Engineer', role: 'Flight Engineer' },
+  { id: 'c4', name: 'Mission Specialist', role: 'Mission Specialist' },
 ]
 
 function rng(seed: number) {

@@ -54,7 +54,11 @@ export function useSpeechInput(onFinal: (text: string) => void) {
         setInterim('')
       }
     }
-    r.onerror = (e) => setError(e.error === 'not-allowed' ? 'Microphone permission denied.' : `Voice input error: ${e.error}`)
+    r.onerror = (e) => {
+      // Silence and our own stop() are normal, not errors (hands-free mode restarts listening).
+      if (e.error === 'no-speech' || e.error === 'aborted') return
+      setError(e.error === 'not-allowed' ? 'Microphone permission denied.' : `Voice input error: ${e.error}`)
+    }
     r.onend = () => setListening(false)
     rec.current = r
     setError(null)
@@ -65,3 +69,5 @@ export function useSpeechInput(onFinal: (text: string) => void) {
   useEffect(() => () => rec.current?.stop(), [])
   return { supported, listening, interim, error, start, stop }
 }
+
+export type SpeechInput = ReturnType<typeof useSpeechInput>

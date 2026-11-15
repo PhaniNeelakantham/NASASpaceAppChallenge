@@ -129,7 +129,7 @@ export function refineRegion(region: RegionId, z: number): RegionId {
   return region
 }
 
-/** Simulated history: K. Tanaka has lower back pain that is easing (the classic early-flight complaint). */
+/** Simulated history: the Flight Engineer has lower back pain that is easing (the classic early-flight complaint). */
 export function seedPain(crewId: string): PainStore {
   if (crewId !== 'c3') return { reports: [], resolved: [] }
   const now = Date.now()

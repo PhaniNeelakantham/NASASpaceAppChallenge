@@ -32,7 +32,7 @@ function seedJournal(crewId: string): Entry[] {
     return [
       { id: 'j1', at: now - 4 * DAY_MS, mood: 7, text: 'Docking went perfectly. Proud of the team.' },
       { id: 'j2', at: now - 2 * DAY_MS, mood: 6, text: 'Couldn’t sleep again. The fans are loud.' },
-      { id: 'j3', at: now - 1 * DAY_MS, mood: 5, text: 'Tired. Snapped at Tanaka over nothing — need to apologise.' },
+      { id: 'j3', at: now - 1 * DAY_MS, mood: 5, text: 'Tired. Snapped at the Flight Engineer over nothing — need to apologise.' },
     ]
   return [{ id: 'j1', at: now - 2 * DAY_MS, mood: 7, text: 'Saw the sunrise over the Pacific from the cupola.' }]
 }

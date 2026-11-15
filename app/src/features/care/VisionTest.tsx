@@ -16,7 +16,7 @@ interface VisionResult {
 function seedVision(crewId: string): VisionResult[] {
   const now = Date.now()
   const base = [{ at: now - 14 * DAY_MS, left: [], right: [] }]
-  // L. Novak: a small distorted patch first seen last week (right eye, near centre).
+  // Mission Specialist: a small distorted patch first seen last week (right eye, near centre).
   if (crewId === 'c4') return [...base, { at: now - 7 * DAY_MS, left: [], right: [189, 190] }]
   return [...base, { at: now - 7 * DAY_MS, left: [], right: [] }]
 }

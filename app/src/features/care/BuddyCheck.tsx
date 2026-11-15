@@ -24,9 +24,9 @@ interface Rating {
   note: string
 }
 
-const first = (id: string) => CREW.find((c) => c.id === id)?.name ?? id
+const first = (id: string) => `the ${CREW.find((c) => c.id === id)?.name ?? id}`
 
-/** Simulated week: the crew sees A. Rivera (c1, sleep debt) as tired and unfocused — more than she rates herself. */
+/** Simulated week: the crew sees the Commander (c1, sleep debt) as tired and unfocused — more than they rate themselves. */
 function seedRatings(): Rating[] {
   const now = Date.now()
   const out: Rating[] = []

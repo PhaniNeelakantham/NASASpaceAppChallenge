@@ -10,7 +10,7 @@
  */
 import Anthropic from '@anthropic-ai/sdk'
 
-export type Mode = 'emergency' | 'ask'
+export type Mode = 'emergency' | 'ask' | 'handover' | 'skin'
 
 export interface ChatTurn {
   role: 'user' | 'model'
@@ -22,6 +22,8 @@ export interface AssistantRequest {
   messages: ChatTurn[]
   /** Current app state (environment, vitals, current step, …) — attached to the latest message. */
   context: unknown
+  /** Skin mode only: up to two labelled photos (JPEG/PNG data URLs), attached to the latest message. */
+  images?: { label: string; dataUrl: string }[]
 }
 
 export interface ProposedAction {
@@ -37,24 +39,51 @@ export type AssistantBody =
 const DEFAULT_MODEL = 'claude-haiku-5-5'
 
 const PROTOCOL_IDS = ['collapse', 'chest', 'breath', 'bleed', 'toxic', 'dcs']
+const CREW_IDS = ['c1', 'c2', 'c3', 'c4']
 const SYSTEM_IDS = ['skin', 'heart', 'lungs', 'eyes', 'bones', 'muscle', 'immune', 'gut', 'mind', 'sleep']
 
 /* ------------------------------------------------------------------ */
 /* Prompts                                                              */
 /* ------------------------------------------------------------------ */
 
-const EMERGENCY_PROMPT = `You are HALO's emergency copilot on a crewed space mission. The person typing is a crew member, not a doctor, helping a crewmate in a medical emergency. Their messages are short, typed or spoken, and may be panicked.
+const EMERGENCY_PROMPT = `You are HALO, the emergency copilot on a crewed space mission. You talk with a crew member who is not a doctor while they help a crewmate in a medical emergency — like a calm emergency dispatcher who stays on the line. Their messages are short, typed or spoken, and may be panicked. Your words are read aloud.
 
 How to reply:
-- At most two short sentences, plain words, written as instructions. No markdown, no lists.
-- Always write at least one short sentence of guidance, even when you also call a tool — it is read aloud to the rescuer.
-- The app runs checked step-by-step guides (protocol ids: collapse, chest, breath, bleed, toxic, dcs). Those guides are the source of truth. You never invent procedures, never name drugs or doses — for medicines say "follow the medical kit card".
-- If no guide is running, call choose_protocol with the best match. If you are unsure, or the patient may be unresponsive or not breathing normally, choose "collapse" (it starts with safety and breathing checks).
-- If a guide is running and the crew member's words clearly answer the CURRENT step, call answer_step with yes/no (for a question) or done (for an action step). If their words do not clearly answer it, ask the current step's question back in simpler words instead. Never answer any step other than the current one.
+- One to three short spoken sentences, plain words, no markdown or lists. Sound like a calm person on the line: acknowledge what they said in a few words, give the single most important instruction, then (when useful) ask one focused question.
+- Always write words, even when you also call tools.
+- Use their crewmate's title (for example "the Commander") from the context.
+- The app runs checked step-by-step guides (protocol ids: collapse, chest, breath, bleed, toxic, dcs). They are the source of truth. Never invent procedures, never name drugs or doses — for medicines say "follow the medical kit card".
+- No patient chosen yet: if their words make clear who is hurt, call choose_patient with that crew id.
+- No guide running yet: call choose_protocol with the best match. If unsure, or the patient may be unresponsive or not breathing normally, choose "collapse" (it starts with safety and breathing checks).
+- A guide is running: coach them through the CURRENT step in your own words (what to look for, how to do it in their gravity — in 0 g, anchor yourself and the patient first). If their words clearly answer the current step, call answer_step with one of the answers listed in currentStep.answers (an action step only accepts "done", even when its wording is a question; if what they said means the action is not complete, do not call answer_step — tell them what to do instead). If not, ask the current step's question again, more simply. Never answer any other step.
+- During CPR, keep them going: push hard and fast in the centre of the chest, about two per second, swap rescuers every two minutes if there is one.
+- If they are frightened, reassure briefly ("You're doing the right thing") and keep them on task.
 - Treat not breathing, unresponsive, no pulse or severe bleeding as the most urgent.
-- Call log_event for important facts they mention (when symptoms started, allergies, what happened, medicines already given).
-- If the escalation mode is "queued", Earth is minutes away: remind them they are the first responders and must not wait for Earth. Call send_consult only when they ask to contact the ground.
+- Call log_event for important facts they mention (vital signs they measured, when symptoms started, allergies, what happened, medicines already given).
+- If the escalation mode is "queued", Earth is minutes away: they are the first responders and must not wait for Earth. Call send_consult only when they ask to contact the ground.
 - Each user message ends with a JSON context block describing the app state. Use it; do not read it back.`
+
+const SKIN_PROMPT = `You help an astronaut track a skin problem (rash, bruise, cut, pressure mark) by comparing two photos of the same spot taken at different times. The person is not a doctor. This is change tracking, not a diagnosis.
+
+Reply in this exact format, plain text, no markdown:
+First line: exactly one of "LEVEL: same", "LEVEL: watch" or "LEVEL: show_cmo".
+Then two to four short sentences:
+- What changed between the earlier and the later photo: size (use the ruler if one is visible), colour, edges, spread, blisters, broken or weeping skin.
+- If the photos are hard to compare (light, distance, angle, blur, no ruler), say so and how to retake them.
+- What to do next.
+
+Choose "show_cmo" when it is clearly spreading or growing, blistering, broken or weeping, has red streaks, or the notes mention fever, worsening pain or swelling. Choose "watch" for a small change or when you cannot tell. Choose "same" only when it looks unchanged or better.
+Never name a condition as certain and never name medicines or doses. You may say what the Crew Medical Officer may want to check. If an image does not show skin, say so.
+The text after the photos gives when each was taken, the body area, measured sizes and the astronaut's notes. Crew data in this prototype may be simulated.`
+
+const HANDOVER_PROMPT = `You write the medical handover report for a space-mission emergency, from the event log and app state in the JSON context. The reader is a flight surgeon on Earth or the base medical officer.
+
+Write exactly four short lines, plain text, each starting with its label:
+Situation: who (by title), what is happening, and how long since the start.
+Background: relevant readings from before the event and anything learned about how it started.
+Assessment: what the crew found and did, in time order, using the times from the log. Report findings; do not diagnose.
+Request: what the crew needs from the reader.
+Never name drugs or doses that are not in the log. Do not invent facts; say "not recorded" when something is missing.`
 
 const ASK_PROMPT = `You are HALO, an onboard health assistant for astronauts on a space mission. The person asking is an astronaut, not a doctor.
 
@@ -86,8 +115,9 @@ function tool(name: string, description: string, properties: Record<string, unkn
 
 const EMERGENCY_TOOLS: Anthropic.Tool[] = [
   tool('choose_protocol', 'Propose which emergency guide to start. The crew member confirms before it starts.', { protocol_id: { type: 'string', enum: PROTOCOL_IDS }, reason: str('Short reason shown to the crew member') }, ['protocol_id', 'reason']),
-  tool('answer_step', 'Propose the answer to the CURRENT step of the running guide, only when the crew member clearly answered it. They confirm it.', { answer: { type: 'string', enum: ['yes', 'no', 'done'] }, reason: str('The words that answer the step') }, ['answer', 'reason']),
+  tool('answer_step', 'Propose the answer to the CURRENT step of the running guide, only when the crew member clearly answered it. The answer must be one of currentStep.answers in the context. They confirm it.', { answer: { type: 'string', enum: ['yes', 'no', 'done'] }, reason: str('The words that answer the step') }, ['answer', 'reason']),
   tool('log_event', 'Record an important fact in the emergency log (symptom onset, allergies, what happened, medicines given).', { text: str('One short log line') }, ['text']),
+  tool('choose_patient', 'Propose which crew member is the patient, when the rescuer said who is hurt. They confirm it.', { crew_id: { type: 'string', enum: CREW_IDS }, reason: str('The words that say who it is') }, ['crew_id', 'reason']),
   tool('send_consult', 'Propose sending a consult message to Earth or the base medical officer. Only when the crew member asks to contact them.', { summary: str('One-paragraph situation summary') }, ['summary']),
 ]
 
@@ -120,9 +150,12 @@ function fallbackText(mode: Mode, actions: ProposedAction[]): string {
     if (a.name === 'start_emergency') parts.push('This sounds like an emergency — opening the emergency guide now.')
     if (a.name === 'choose_protocol') parts.push(`Start the “${PROTOCOL_NAMES[v('protocol_id')] ?? 'emergency'}” guide — confirm below.`)
     if (a.name === 'answer_step') parts.push(`I think the answer to this step is “${v('answer')}” — confirm below.`)
+    if (a.name === 'choose_patient') parts.push('Confirm who the patient is below.')
     if (a.name === 'send_consult') parts.push('I drafted a message to the ground — confirm below to send it.')
   }
   if (parts.length) return parts.join(' ')
+  if (mode === 'skin') return 'LEVEL: watch\nThe photos could not be compared. Keep photographing daily and show your Crew Medical Officer if it changes.'
+  if (mode === 'handover') return 'Handover report could not be written. Send the event log instead.'
   return mode === 'emergency' ? 'Keep following the step on screen.' : 'Sorry, I don’t have an answer for that. Try asking it another way.'
 }
 
@@ -130,16 +163,25 @@ function fallbackText(mode: Mode, actions: ProposedAction[]): string {
 /* Handler (shared by Vercel and the Vite dev server)                   */
 /* ------------------------------------------------------------------ */
 
+const IMAGE_RE = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/
+
 function validate(b: unknown): AssistantRequest | null {
   if (!b || typeof b !== 'object') return null
   const r = b as Partial<AssistantRequest>
-  if (r.mode !== 'emergency' && r.mode !== 'ask') return null
+  if (r.mode !== 'emergency' && r.mode !== 'ask' && r.mode !== 'handover' && r.mode !== 'skin') return null
   if (!Array.isArray(r.messages) || r.messages.length === 0 || r.messages.length > 24) return null
   for (const m of r.messages) {
     if (!m || (m.role !== 'user' && m.role !== 'model') || typeof m.text !== 'string' || m.text.length > 2000) return null
   }
   if (r.messages.at(-1)!.role !== 'user') return null
   if (JSON.stringify(r.context ?? null).length > 24000) return null
+  if (r.mode === 'skin') {
+    if (!Array.isArray(r.images) || r.images.length < 1 || r.images.length > 2) return null
+    for (const im of r.images) {
+      if (!im || typeof im.label !== 'string' || im.label.length > 200 || typeof im.dataUrl !== 'string') return null
+      if (!IMAGE_RE.test(im.dataUrl) || im.dataUrl.length > 1_500_000) return null
+    }
+  } else if (r.images !== undefined) return null
   return r as AssistantRequest
 }
 
@@ -155,6 +197,19 @@ function toMessages(req: AssistantRequest): Anthropic.MessageParam[] {
     else out.push({ role, content: text })
   })
   while (out.length && out[0].role !== 'user') out.shift()
+
+  // Skin mode: put the photos in front of the final text, each with its label.
+  if (req.images?.length) {
+    const lastMsg = out.at(-1)!
+    const blocks: Anthropic.ContentBlockParam[] = []
+    for (const im of req.images) {
+      const m = IMAGE_RE.exec(im.dataUrl)!
+      blocks.push({ type: 'text', text: im.label })
+      blocks.push({ type: 'image', source: { type: 'base64', media_type: `image/${m[1]}` as 'image/jpeg' | 'image/png' | 'image/webp', data: im.dataUrl.slice(im.dataUrl.indexOf(',') + 1) } })
+    }
+    blocks.push({ type: 'text', text: lastMsg.content as string })
+    lastMsg.content = blocks
+  }
   return out
 }
 
@@ -172,15 +227,16 @@ export async function handleAssistant(body: unknown, apiKey: string | undefined,
         max_tokens: 2048,
         // Low effort: fastest and cheapest; these are short, well-scoped replies.
         output_config: { effort: 'low' },
-        system: req.mode === 'emergency' ? EMERGENCY_PROMPT : ASK_PROMPT,
-        tools: req.mode === 'emergency' ? EMERGENCY_TOOLS : ASK_TOOLS,
+        system: { emergency: EMERGENCY_PROMPT, handover: HANDOVER_PROMPT, skin: SKIN_PROMPT, ask: ASK_PROMPT }[req.mode],
+        ...(req.mode === 'emergency' || req.mode === 'ask' ? { tools: req.mode === 'emergency' ? EMERGENCY_TOOLS : ASK_TOOLS } : {}),
         messages: toMessages(req),
       },
-      { timeout: 20_000 },
+      { timeout: 25_000 },
     )
 
     if (res.stop_reason === 'refusal') {
-      return { status: 200, body: { ok: true, text: 'I can’t help with that here. Keep following the step-by-step guide and contact your Crew Medical Officer.', actions: [], model: useModel } }
+      const msg = req.mode === 'skin' ? 'LEVEL: watch\nI can’t assess these photos. Show them to your Crew Medical Officer.' : 'I can’t help with that here. Keep following the step-by-step guide and contact your Crew Medical Officer.'
+      return { status: 200, body: { ok: true, text: msg, actions: [], model: useModel } }
     }
     const text = res.content
       .filter((b): b is Anthropic.TextBlock => b.type === 'text')

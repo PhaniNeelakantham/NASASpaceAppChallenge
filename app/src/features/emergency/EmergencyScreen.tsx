@@ -4,6 +4,7 @@ import { NODES, PROTOCOLS, txt, type Ctx, type Protocol } from '../../content/em
 import { CREW, READINGS } from '../../data/syntheticCrew'
 import { useComms } from '../../state/comms'
 import { ENVIRONMENTS, formatCountdown, formatDelay, type EnvironmentId } from '../../state/mission'
+import { askAssistant } from '../../ai/client'
 import { EmergencyCopilot } from './EmergencyCopilot'
 import { CprCoach, fmt, speak, StepTimer, VitalsQuick } from './tools'
 
@@ -40,7 +41,8 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
   const sentAt = useRef<number | null>(null)
 
   const patient = CREW.find((c) => c.id === patientId)
-  const c: Ctx = { env, zeroG, patient: patient ? patient.name.split(' ').at(-1)! : 'them' }
+  const c: Ctx = { env, zeroG, patient: patient ? `the ${patient.name}` : 'them' }
+  const [handover, setHandover] = useState<{ text: string; busy: boolean; sent?: boolean } | null>(null)
   const nodeId = history.at(-1)
   const node = nodeId ? NODES[nodeId] : undefined
 
@@ -50,6 +52,14 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
   }, [])
 
   const addLog = useCallback((text: string) => setLog((l) => [...l, { at: Date.now(), text }]), [])
+
+  // Kept in a ref too, so a patient and guide confirmed together start with the right name.
+  const patientRef = useRef<string | null>(null)
+  const choosePatient = (id: string) => {
+    patientRef.current = id
+    setPatientId(id)
+    addLog(`Patient: ${CREW.find((m) => m.id === id)?.name ?? id}`)
+  }
 
   // Read each new instruction aloud.
   useEffect(() => {
@@ -74,11 +84,12 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
   )
 
   const startProtocol = (p: Protocol) => {
+    const who = CREW.find((m) => m.id === patientRef.current)?.name
     setProtocol(p)
     setHistory([p.start])
-    addLog(`Started: ${p.title} — patient ${patient?.name ?? 'unknown'}`)
+    addLog(`Started: ${p.title} — patient ${who ?? 'unknown'}`)
     // Far from Earth: tell the ground immediately, don't wait for the crew to remember.
-    if (e.escalation.mode === 'queued') escalate(p, patient?.name ?? 'crew member')
+    if (e.escalation.mode === 'queued') escalate(p, who ?? 'crew member')
   }
 
   const go = useCallback(
@@ -116,7 +127,9 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
     const r = patientId ? READINGS[patientId]?.at(-1) : undefined
     return {
       environment: { kind: e.kind, place: e.label, gravity: e.gravity, earthOneWaySeconds: e.oneWayDelaySec, escalation: e.escalation.mode, firstContact: e.escalation.firstContact, evacuation: e.evacuation },
-      patient: patient ? { name: patient.name, role: patient.role, lastReadings: r ? { ...r.values, symptoms: r.symptoms } : null } : null,
+      crew: CREW.map((m) => ({ id: m.id, title: m.name, isRescuer: m.id === userId })),
+      patient: patient ? { id: patient.id, title: patient.name, lastReadings: r ? { ...r.values, symptoms: r.symptoms } : null } : null,
+      minutesSinceStart: Math.round((Date.now() - startedAt) / 60000),
       guides: PROTOCOLS.map((x) => ({ id: x.id, title: x.title })),
       runningGuide: protocol ? { id: protocol.id, title: protocol.title } : null,
       currentStep: node ? { kind: node.kind, instruction: txt(node.text, c), detail: txt(node.detail, c), answers: node.kind === 'ask' ? ['yes', 'no'] : node.kind === 'do' ? ['done'] : [] } : null,
@@ -125,6 +138,31 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patientId, protocol, nodeId, log, env])
 
+  const aiChoosePatient = (id: string, reason: string) => {
+    if (!CREW.some((m) => m.id === id)) return
+    choosePatient(id)
+    addLog(`AI suggested patient (${reason}) — confirmed by rescuer`)
+  }
+  const directAnswer = (answer: 'yes' | 'no' | 'done') => {
+    if (!node) return
+    if (node.kind === 'ask' && answer !== 'done') go(answer === 'yes' ? node.yes : node.no, `${answer === 'yes' ? node.yesLabel ?? 'Yes' : node.noLabel ?? 'No'} (said aloud)`)
+    if (node.kind === 'do' && answer === 'done') go(node.next, `${node.doneLabel ?? 'Done'} (said aloud)`)
+  }
+  const fullLog = () => log.map((l) => `[${fmt(l.at - startedAt)}] ${l.text}`)
+  const writeHandover = async () => {
+    setHandover({ text: '', busy: true })
+    const r = await askAssistant('handover', [{ role: 'user', text: 'Write the handover report now.' }], { ...aiContext, recentLog: fullLog().slice(-60) })
+    if (r.ok) {
+      setHandover({ text: r.text, busy: false })
+      addLog('AI handover report written')
+    } else {
+      // Offline: a plain report built from the log.
+      setHandover({
+        text: `Situation: ${patient?.name ?? 'Crew member'} — ${protocol?.title ?? 'emergency'}, ${fmt(Date.now() - startedAt)} since start.\nLog: ${fullLog().join(' | ')}`,
+        busy: false,
+      })
+    }
+  }
   const aiChooseProtocol = (id: string, reason: string) => {
     const p = PROTOCOLS.find((x) => x.id === id)
     if (!p) return
@@ -195,38 +233,38 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
       <div className="grid min-h-0 flex-1 gap-4 p-4 lg:grid-cols-[1fr_360px]">
         {/* Main column */}
         <main className="flex min-h-0 flex-col overflow-y-auto overflow-x-hidden">
-          {patient && (
-            <EmergencyCopilot
-              context={aiContext}
-              currentNodeId={nodeId ?? null}
-              currentKind={node?.kind ?? null}
-              voice={voice}
-              onChooseProtocol={aiChooseProtocol}
-              onAnswer={aiAnswer}
-              onLog={addLog}
-              onConsult={aiConsult}
-            />
-          )}
-          {!patient && (
+          <EmergencyCopilot
+            context={aiContext}
+            currentNodeId={nodeId ?? null}
+            currentKind={node?.kind ?? null}
+            hasPatient={!!patient}
+            hasProtocol={!!protocol}
+            voice={voice}
+            onChoosePatient={aiChoosePatient}
+            onChooseProtocol={aiChooseProtocol}
+            onAnswer={aiAnswer}
+            onDirectAnswer={directAnswer}
+            onLog={addLog}
+            onConsult={aiConsult}
+          />
+          {!patient && !protocol && (
             <section>
-              <p className="mb-4 text-2xl font-semibold">Who needs help?</p>
+              <p className="mb-4 text-2xl font-semibold">
+                Who needs help? <span className="text-base font-normal text-ink-dim">Tap, or just tell HALO.</span>
+              </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 {CREW.map((m) => (
                   <button
                     key={m.id}
-                    onClick={() => {
-                      setPatientId(m.id)
-                      addLog(`Patient: ${m.name}`)
-                    }}
+                    onClick={() => choosePatient(m.id)}
                     className="flex min-h-24 items-center gap-4 rounded-2xl border border-white/15 bg-white/[0.03] px-5 text-left hover:border-warning/60 hover:bg-warning/5"
                   >
-                    <span className="grid h-12 w-12 place-items-center rounded-full bg-white/10 text-lg font-bold">{m.name.split(' ').at(-1)![0]}</span>
+                    <span className="grid h-12 w-12 place-items-center rounded-full bg-white/10 text-sm font-bold">{m.name.split(' ').map((w) => w[0]).join('')}</span>
                     <span>
                       <span className="block text-xl font-bold">
                         {m.name}
                         {m.id === userId && <span className="ml-2 text-sm font-normal text-ink-dim">(me)</span>}
                       </span>
-                      <span className="text-sm text-ink-dim">{m.role}</span>
                     </span>
                   </button>
                 ))}
@@ -236,7 +274,7 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
 
           {patient && !protocol && (
             <section>
-              <p className="mb-4 text-2xl font-semibold">What is happening to {patient.name.split(' ').at(-1)}?</p>
+              <p className="mb-4 text-2xl font-semibold">What is happening to the {patient.name}?</p>
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {PROTOCOLS.map((p) => (
                   <button
@@ -298,7 +336,7 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => {
-                        send(protocol.system, env, `Emergency log (${protocol.title}, ${patient?.name}): ${log.map((l) => `[${fmt(l.at - startedAt)}] ${l.text}`).join(' | ')}`)
+                        send(protocol.system, env, `Emergency log (${protocol.title}, ${patient?.name}): ${fullLog().join(' | ')}`)
                         addLog('Full log sent')
                       }}
                       className="min-h-16 rounded-2xl bg-accent px-6 text-lg font-bold text-space-950"
@@ -386,6 +424,41 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
                 )
               })()}
               <p className="mt-2 text-xs text-ink-dim">Check the medical record for allergies before giving any medicine.</p>
+            </section>
+          )}
+
+          {protocol && (
+            <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-dim">
+                Handover report · for the {e.escalation.mode === 'radio' ? 'base medic' : 'flight surgeon'}
+              </div>
+              {!handover && (
+                <button onClick={() => void writeHandover()} className="mt-2 min-h-12 w-full rounded-xl border border-accent/50 text-sm font-semibold text-accent hover:bg-accent/10">
+                  Have HALO write the handover
+                </button>
+              )}
+              {handover?.busy && <p className="mt-2 animate-pulse text-sm text-ink-dim">HALO is writing the report from the log…</p>}
+              {handover && !handover.busy && (
+                <>
+                  <p className="mt-2 whitespace-pre-line text-sm leading-snug">{handover.text}</p>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={() => {
+                        send(protocol.system, env, `HANDOVER — ${handover.text}`)
+                        addLog('Handover report sent')
+                        setHandover({ ...handover, sent: true })
+                      }}
+                      disabled={handover.sent}
+                      className="min-h-11 flex-1 rounded-xl bg-accent text-sm font-bold text-space-950 disabled:opacity-40"
+                    >
+                      {handover.sent ? 'Sent' : `Send to ${e.escalation.mode === 'radio' ? 'base' : 'Earth'}`}
+                    </button>
+                    <button onClick={() => void writeHandover()} className="min-h-11 rounded-xl border border-white/15 px-3 text-sm">
+                      Update
+                    </button>
+                  </div>
+                </>
+              )}
             </section>
           )}
 

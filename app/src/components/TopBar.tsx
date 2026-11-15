@@ -111,7 +111,7 @@ export function TopBar({ env, onEnv, crewId, onCrew, night, onNight, onEmergency
         <select value={crewId} onChange={(ev) => onCrew(ev.target.value)} className={select} aria-label="Crew member">
           {CREW.map((c) => (
             <option key={c.id} value={c.id} className="bg-space-900">
-              {c.name} — {c.role}
+              {c.name}
             </option>
           ))}
         </select>

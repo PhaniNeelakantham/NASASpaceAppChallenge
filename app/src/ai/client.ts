@@ -1,6 +1,6 @@
 // Browser side of the HALO assistant. Talks only to our own /api/assistant route — never to Gemini directly.
 
-export type Mode = 'emergency' | 'ask'
+export type Mode = 'emergency' | 'ask' | 'handover' | 'skin'
 
 export interface ChatTurn {
   role: 'user' | 'model'
@@ -16,7 +16,7 @@ export type AssistantResult =
   | { ok: true; text: string; actions: ProposedAction[]; model: string }
   | { ok: false; error: 'offline' | 'no_key' | 'bad_request' | 'rate_limited' | 'upstream' | 'timeout'; message: string }
 
-export async function askAssistant(mode: Mode, messages: ChatTurn[], context: unknown): Promise<AssistantResult> {
+export async function askAssistant(mode: Mode, messages: ChatTurn[], context: unknown, images?: { label: string; dataUrl: string }[]): Promise<AssistantResult> {
   if (typeof navigator !== 'undefined' && !navigator.onLine) return { ok: false, error: 'offline', message: 'No connection.' }
   const ctl = new AbortController()
   const t = setTimeout(() => ctl.abort(), 25000)
@@ -24,7 +24,7 @@ export async function askAssistant(mode: Mode, messages: ChatTurn[], context: un
     const r = await fetch(`${import.meta.env.BASE_URL}api/assistant`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ mode, messages: messages.slice(-12), context }),
+      body: JSON.stringify({ mode, messages: messages.slice(-12), context, images }),
       signal: ctl.signal,
     })
     const body = (await r.json().catch(() => null)) as AssistantResult | null

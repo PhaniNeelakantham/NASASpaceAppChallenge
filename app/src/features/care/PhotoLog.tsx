@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Sparkles } from 'lucide-react'
+import { askAssistant, failureText } from '../../ai/client'
 import { DAY_MS, relTime, uid, useCrewStore } from '../../state/crewStore'
+import { usePersistentState } from '../../state/persist'
 
 // Skin & rash photo log: one photo a day of the same spot, compared side by side.
 
@@ -58,6 +61,29 @@ function drawRash(size: number, seed: number): string {
   return c.toDataURL('image/jpeg', 0.7)
 }
 
+type Level = 'same' | 'watch' | 'show_cmo'
+interface AiCompare {
+  level: Level
+  text: string
+  at: number
+}
+
+const LEVEL_UI: Record<Level, { label: string; cls: string }> = {
+  same: { label: '● Looks the same or better', cls: 'border-nominal/40 bg-nominal/10 text-nominal' },
+  watch: { label: '▲ Keep watching', cls: 'border-caution/40 bg-caution/10 text-caution' },
+  show_cmo: { label: '◆ Show your Crew Medical Officer', cls: 'border-warning/40 bg-warning/10 text-warning' },
+}
+
+const describe = (p: Photo, which: string) =>
+  `${which} photo: ${p.area}, taken ${relTime(p.at)}, size ${p.sizeMm ? `${p.sizeMm} mm` : 'not measured'}${p.note ? `, note: "${p.note}"` : ''}.`
+
+/** Splits Claude's reply into the level line and the explanation. */
+function parseCompare(text: string): Omit<AiCompare, 'at'> {
+  const m = /LEVEL:\s*(same|watch|show_cmo)/i.exec(text)
+  const level = (m?.[1].toLowerCase() as Level | undefined) ?? 'watch'
+  return { level, text: text.replace(/^.*LEVEL:.*$/im, '').trim() || 'No details given.' }
+}
+
 function seedPhotos(crewId: string): Photo[] {
   if (crewId !== 'c2') return []
   return [] // generated in the browser on first load (needs a canvas)
@@ -74,8 +100,11 @@ export function PhotoLog({ crewId }: { crewId: string }) {
   const stream = useRef<MediaStream | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
   const [camError, setCamError] = useState('')
+  const [aiResults, setAiResults] = usePersistentState<Record<string, AiCompare>>(`halo.skinAi.${crewId}`, {})
+  const [aiBusy, setAiBusy] = useState(false)
+  const [aiError, setAiError] = useState('')
 
-  // Demo story: M. Okafor's rash appeared yesterday and is spreading today.
+  // Demo story: the Crew Medical Officer's rash appeared yesterday and is spreading today.
   useEffect(() => {
     if (crewId === 'c2' && photos.length === 0 && !localStorage.getItem('halo.photos.seeded.c2')) {
       const now = Date.now()
@@ -156,6 +185,27 @@ export function PhotoLog({ crewId }: { crewId: string }) {
   const last = cmp?.[cmp.length - 1]
   const growth = first?.sizeMm && last?.sizeMm && first !== last ? last.sizeMm / first.sizeMm : null
 
+  const pairKey = first && last && first !== last ? `${first.id}:${last.id}` : null
+  const ai = pairKey ? aiResults[pairKey] : undefined
+
+  const compareWithAi = async () => {
+    if (!first || !last || !pairKey) return
+    setAiBusy(true)
+    setAiError('')
+    const r = await askAssistant(
+      'skin',
+      [{ role: 'user', text: `${describe(first, 'Earlier')}\n${describe(last, 'Later')}\nCompare the two photos.` }],
+      { area: first.area, photosOfThisArea: cmp?.length ?? 2 },
+      [
+        { label: `Earlier photo (${relTime(first.at)}):`, dataUrl: first.img },
+        { label: `Later photo (${relTime(last.at)}):`, dataUrl: last.img },
+      ],
+    )
+    setAiBusy(false)
+    if (!r.ok) return setAiError(failureText(r).replace('The step-by-step guide still works.', 'The size comparison above still works.'))
+    setAiResults((all) => ({ ...all, [pairKey]: { ...parseCompare(r.text), at: Date.now() } }))
+  }
+
   const field = 'min-h-11 rounded-lg border border-white/10 bg-black/30 px-3 text-sm outline-none focus:border-accent/60'
 
   return (
@@ -232,6 +282,37 @@ export function PhotoLog({ crewId }: { crewId: string }) {
                   ? `▲ Slightly larger (${Math.round((growth - 1) * 100)} %). Keep photographing daily.`
                   : '● Same size or smaller. Keep it clean and keep checking.'}
             </p>
+          )}
+          {pairKey && (
+            <div className="flex flex-col gap-2 rounded-xl border border-accent/30 bg-accent/[0.05] p-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-accent" aria-hidden />
+                <span className="flex-1 font-mono text-[10px] uppercase tracking-[0.2em] text-accent">HALO photo check · AI</span>
+                {ai && (
+                  <button onClick={() => void compareWithAi()} disabled={aiBusy} className="min-h-9 rounded-lg px-2 text-xs text-ink-dim hover:text-ink disabled:opacity-40">
+                    Check again
+                  </button>
+                )}
+              </div>
+              {!ai && !aiBusy && (
+                <>
+                  <p className="text-xs text-ink-dim">HALO looks at the first and latest photo and tells you what changed and whether to show your Crew Medical Officer.</p>
+                  <button onClick={() => void compareWithAi()} className="min-h-11 rounded-lg bg-accent text-sm font-semibold text-space-950">
+                    Compare these photos with HALO
+                  </button>
+                </>
+              )}
+              {aiBusy && <p className="animate-pulse text-sm text-ink-dim">HALO is comparing the photos…</p>}
+              {ai && !aiBusy && (
+                <>
+                  <div className={`self-start rounded-full border px-3 py-1 text-sm font-semibold ${LEVEL_UI[ai.level].cls}`}>{LEVEL_UI[ai.level].label}</div>
+                  <p className="whitespace-pre-line text-sm leading-snug">{ai.text}</p>
+                  <p className="font-mono text-[10px] text-ink-dim">Checked {relTime(ai.at)}</p>
+                </>
+              )}
+              {aiError && <p className="text-xs text-caution">▲ {aiError}</p>}
+              <p className="text-[11px] text-ink-dim">Prototype: AI change tracking (Claude), not a diagnosis. Photos are sent to the AI only when you press the button. A flight version would run a trained model on board.</p>
+            </div>
           )}
           <div className="flex gap-2 overflow-x-auto pb-1">
             {cmp.map((p) => (
