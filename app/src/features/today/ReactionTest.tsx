@@ -93,7 +93,7 @@ export function ReactionTest({ onDone, onClose }: { onDone: (r: PvtResult) => vo
           </div>
           <p className="col-span-2 text-sm text-ink-dim">
             {lapses === 0 && median < 350
-              ? '● Alert and sharp. Nice.'
+              ? '● Within normal range: alert.'
               : lapses <= 1
                 ? '▲ A little slow. Watch your sleep tonight.'
                 : '◆ Several lapses: you may be fatigued. Avoid critical tasks until you rest, and log your sleep.'}
