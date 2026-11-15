@@ -1,8 +1,9 @@
+import { Eye, EyeOff } from 'lucide-react'
 import type { Detail } from '../anatomy/models'
 import { LAYERS, type LayerId } from '../theme'
 
 const DETAILS: { id: Detail; label: string; hint: string }[] = [
-  { id: 'low', label: 'Low', hint: 'Lighter meshes, no glow — fastest' },
+  { id: 'low', label: 'Low', hint: 'Lighter meshes, no glow, fastest' },
   { id: 'medium', label: 'Medium', hint: 'Full meshes, no glow' },
   { id: 'high', label: 'High', hint: 'Full meshes, glow, sharper render' },
 ]
@@ -77,7 +78,7 @@ export function LayerControl({ detail, onDetail, depth, onDepth, hidden, onToggl
                   aria-label={`${off ? 'Show' : 'Hide'} ${l.label}`}
                   aria-pressed={!off}
                 >
-                  {off ? '◌' : '◉'}
+                  {off ? <EyeOff aria-hidden className="h-4 w-4" /> : <Eye aria-hidden className="h-4 w-4" />}
                 </button>
               </li>
             )

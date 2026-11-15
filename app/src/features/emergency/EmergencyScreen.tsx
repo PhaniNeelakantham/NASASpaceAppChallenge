@@ -1,3 +1,5 @@
+import { inl, ToneIcon } from '../../components/ToneIcon'
+import { Volume2, VolumeX } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { NODES, PROTOCOLS, txt, type Ctx, type Protocol } from '../../content/emergency'
@@ -70,7 +72,7 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
 
   const escalate = useCallback(
     (p: Protocol, who: string) => {
-      const body = `EMERGENCY — ${p.title}: ${who}. Live log attached; crew is following HALO guidance.`
+      const body = `EMERGENCY: ${p.title}: ${who}. Live log attached; crew is following HALO guidance.`
       send(p.system, env, body)
       sentAt.current = Date.now()
       addLog(
@@ -87,7 +89,7 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
     const who = CREW.find((m) => m.id === patientRef.current)?.name
     setProtocol(p)
     setHistory([p.start])
-    addLog(`Started: ${p.title} — patient ${who ?? 'unknown'}`)
+    addLog(`Started: ${p.title}, patient ${who ?? 'unknown'}`)
     // Far from Earth: tell the ground immediately, don't wait for the crew to remember.
     if (e.escalation.mode === 'queued') escalate(p, who ?? 'crew member')
   }
@@ -141,7 +143,7 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
   const aiChoosePatient = (id: string, reason: string) => {
     if (!CREW.some((m) => m.id === id)) return
     choosePatient(id)
-    addLog(`AI suggested patient (${reason}) — confirmed by rescuer`)
+    addLog(`AI suggested patient (${reason}), confirmed by rescuer`)
   }
   const directAnswer = (answer: 'yes' | 'no' | 'done') => {
     if (!node) return
@@ -158,7 +160,7 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
     } else {
       // Offline: a plain report built from the log.
       setHandover({
-        text: `Situation: ${patient?.name ?? 'Crew member'} — ${protocol?.title ?? 'emergency'}, ${fmt(Date.now() - startedAt)} since start.\nLog: ${fullLog().join(' | ')}`,
+        text: `Situation: ${patient?.name ?? 'Crew member'}, ${protocol?.title ?? 'emergency'}, ${fmt(Date.now() - startedAt)} since start.\nLog: ${fullLog().join(' | ')}`,
         busy: false,
       })
     }
@@ -166,7 +168,7 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
   const aiChooseProtocol = (id: string, reason: string) => {
     const p = PROTOCOLS.find((x) => x.id === id)
     if (!p) return
-    addLog(`AI suggested “${p.title}” (${reason}) — confirmed by rescuer`)
+    addLog(`AI suggested “${p.title}” (${reason}), confirmed by rescuer`)
     startProtocol(p)
   }
   const aiAnswer = (answer: 'yes' | 'no' | 'done', reason: string) => {
@@ -176,7 +178,7 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
     if (node.kind === 'do' && answer === 'done') go(node.next, `Done${tag}`)
   }
   const aiConsult = (summary: string) => {
-    send(protocol?.system ?? 'heart', env, `EMERGENCY — ${summary}`)
+    send(protocol?.system ?? 'heart', env, `EMERGENCY: ${summary}`)
     addLog('Consult sent (AI-drafted, confirmed by rescuer)')
   }
 
@@ -218,7 +220,7 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
             className="min-h-12 rounded-xl border border-white/15 px-4 text-sm"
             aria-pressed={voice}
           >
-            {voice ? '🔊 Reading aloud' : '🔇 Voice off'}
+            {voice ? <><Volume2 className={inl} /> Reading aloud</> : <><VolumeX className={inl} /> Voice off</>}
           </button>
           <button
             onClick={() => (confirmExit ? onClose() : setConfirmExit(true))}
@@ -284,14 +286,12 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
                       p.urgent ? 'border-warning/50 bg-warning/10 hover:bg-warning/20' : 'border-white/15 bg-white/[0.03] hover:bg-white/[0.06]'
                     }`}
                   >
-                    <span className="text-3xl" aria-hidden>
-                      {p.icon}
-                    </span>
+                    <p.icon aria-hidden className="h-8 w-8" />
                     <span className="text-xl font-bold leading-tight">{p.tile}</span>
                   </button>
                 ))}
               </div>
-              <p className="mt-4 text-sm text-ink-dim">Not sure? Pick “Collapsed or not responding” — it starts with the safety and breathing checks.</p>
+              <p className="mt-4 text-sm text-ink-dim">Not sure? Pick “Collapsed or not responding”. It starts with the safety and breathing checks.</p>
             </section>
           )}
 
@@ -373,9 +373,9 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
                 </p>
                 {consult && (
                   <p className="mt-2 rounded-lg bg-white/[0.04] p-2 text-sm">
-                    {phase(consult) === 'transit' && `▲ Emergency consult in transit — arrives in ${formatCountdown(consult.arriveAt - now)}`}
-                    {phase(consult) === 'awaiting' && `▲ Delivered — earliest reply in ${formatCountdown(consult.replyAt - now)}`}
-                    {phase(consult) === 'replied' && `● Flight surgeon replied (simulated): ${consult.reply}`}
+                    {phase(consult) === 'transit' && <><ToneIcon tone="caution" /> Emergency consult in transit, arrives in {formatCountdown(consult.arriveAt - now)}</>}
+                    {phase(consult) === 'awaiting' && <><ToneIcon tone="caution" /> Delivered, earliest reply in {formatCountdown(consult.replyAt - now)}</>}
+                    {phase(consult) === 'replied' && <><ToneIcon tone="nominal" /> Flight surgeon replied (simulated): {consult.reply}</>}
                   </p>
                 )}
                 {!consult && protocol && <p className="mt-2 text-sm text-ink-dim">Consult will be sent automatically.</p>}
@@ -444,7 +444,7 @@ export function EmergencyScreen({ env, userId, onClose }: Props) {
                   <div className="mt-2 flex gap-2">
                     <button
                       onClick={() => {
-                        send(protocol.system, env, `HANDOVER — ${handover.text}`)
+                        send(protocol.system, env, `HANDOVER: ${handover.text}`)
                         addLog('Handover report sent')
                         setHandover({ ...handover, sent: true })
                       }}

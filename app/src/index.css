@@ -147,7 +147,7 @@ body {
   transform: rotate(45deg);
 }
 
-/* Model detail slider — big thumb for gloved hands */
+/* Model detail slider, big thumb for gloved hands */
 .detail-slider {
   -webkit-appearance: none;
   appearance: none;

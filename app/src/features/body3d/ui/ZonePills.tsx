@@ -1,6 +1,6 @@
 import { ZONES, type ZoneId } from '../nodes/nodeConfig'
 
-/** Single-tap anatomical zones — no pinpoint pinching needed. */
+/** Single-tap anatomical zones, no pinpoint pinching needed. */
 export function ZonePills({ zone, onZone }: { zone: ZoneId; onZone: (z: ZoneId) => void }) {
   return (
     <div className="glass flex flex-wrap justify-center gap-1 p-1.5" onPointerDown={(e) => e.stopPropagation()}>

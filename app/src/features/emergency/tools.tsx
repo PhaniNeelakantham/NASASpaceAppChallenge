@@ -1,3 +1,5 @@
+import { inl, ToneIcon } from '../../components/ToneIcon'
+import { Check } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { Reading } from '../../types'
 
@@ -85,7 +87,7 @@ export function CprCoach({ voice, onLog }: { voice: boolean; onLog: (t: string) 
       if (swaps > swapRef.current) {
         swapRef.current = swaps
         speak('Two minutes. Swap rescuers now.', voice)
-        onLog(`CPR ${swaps * 2} min — rescuer swap prompted`)
+        onLog(`CPR ${swaps * 2} min, rescuer swap prompted`)
       }
     }, 250)
     return () => {
@@ -201,7 +203,7 @@ function flag(v: Vit): string[] {
   const rr = Number(v.rr)
   if (v.hr && (hr < 50 || hr > 120)) out.push(`Pulse ${hr} is outside 50–120`)
   if (v.sys && (sys < 90 || sys > 180)) out.push(`Systolic BP ${sys} is outside 90–180`)
-  if (v.spo2 && spo2 < 94) out.push(`Oxygen ${spo2}% is low — give oxygen per the kit checklist`)
+  if (v.spo2 && spo2 < 94) out.push(`Oxygen ${spo2}% is low, give oxygen per the kit checklist`)
   if (v.rr && (rr < 10 || rr > 24)) out.push(`Breathing rate ${rr}/min is outside 10–24`)
   return out
 }
@@ -220,7 +222,7 @@ export function VitalsQuick({ last, onLog }: { last?: Reading; onLog: (t: string
   const save = () => {
     const parts = fields.filter((f) => v[f.k]).map((f) => `${f.label} ${v[f.k]}${f.unit}`)
     if (parts.length === 0) return
-    onLog(`Vitals: ${parts.join(', ')}${flags.length ? ` — ⚠ ${flags.join('; ')}` : ''}`)
+    onLog(`Vitals: ${parts.join(', ')}${flags.length ? `. Warning: ${flags.join('; ')}` : ''}`)
     setLogged((n) => n + 1)
     setV({ hr: '', sys: '', dia: '', spo2: '', rr: '' })
   }
@@ -236,7 +238,7 @@ export function VitalsQuick({ last, onLog }: { last?: Reading; onLog: (t: string
               inputMode="numeric"
               value={v[f.k]}
               onChange={(e) => setV({ ...v, [f.k]: e.target.value.replace(/[^\d.]/g, '') })}
-              placeholder={f.ph !== undefined ? `last ${f.ph}` : '—'}
+              placeholder={f.ph !== undefined ? `last ${f.ph}` : '-'}
               className="min-h-14 rounded-xl border border-white/15 bg-space-900 px-3 text-2xl font-bold tabular-nums outline-none placeholder:text-sm placeholder:font-normal placeholder:text-ink-dim focus:border-accent"
             />
           </label>
@@ -246,7 +248,7 @@ export function VitalsQuick({ last, onLog }: { last?: Reading; onLog: (t: string
         <ul className="mt-3 space-y-1">
           {flags.map((f) => (
             <li key={f} className="text-sm font-semibold text-warning">
-              ◆ {f}
+              <ToneIcon tone="warning" /> {f}
             </li>
           ))}
         </ul>
@@ -255,7 +257,7 @@ export function VitalsQuick({ last, onLog }: { last?: Reading; onLog: (t: string
         <button onClick={save} className="min-h-12 rounded-xl border border-accent/50 px-5 font-semibold text-accent hover:bg-accent/10">
           Log these vitals
         </button>
-        {logged > 0 && <span className="text-sm text-nominal">✓ Logged {logged}×</span>}
+        {logged > 0 && <span className="text-sm text-nominal"><Check className={inl} /> Logged {logged}×</span>}
         <span className="text-xs text-ink-dim">Placeholders show the last HALO reading.</span>
       </div>
     </div>

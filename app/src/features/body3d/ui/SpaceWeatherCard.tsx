@@ -1,3 +1,5 @@
+import { inl } from '../../../components/ToneIcon'
+import { ChevronDown, ChevronUp, Radiation, RefreshCw, Sun } from 'lucide-react'
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { SourceBadge } from '../../../components/SourceBadge'
@@ -27,7 +29,7 @@ export function SpaceWeatherCard({ env }: { env: EnvironmentId }) {
     <section className="glass pointer-events-auto p-3" style={a.level !== 'nominal' ? { borderColor: `${color}80` } : undefined} data-tour="spaceweather">
       <button onClick={() => setOpen((o) => !o)} className="flex min-h-11 w-full items-center gap-3 text-left" aria-expanded={open}>
         <span className="text-lg" style={{ color }} aria-hidden>
-          {a.level === 'nominal' ? '☀' : '☢'}
+          {a.level === 'nominal' ? <Sun className="h-5 w-5" /> : <Radiation className="h-5 w-5" />}
         </span>
         <div className="min-w-0 flex-1">
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-dim">Space weather</div>
@@ -35,7 +37,7 @@ export function SpaceWeatherCard({ env }: { env: EnvironmentId }) {
             {a.title}
           </div>
         </div>
-        <span className="shrink-0 font-mono text-[10px] uppercase tracking-wider text-ink-dim">{open ? '▴' : '▾'}</span>
+        <span className="shrink-0 font-mono text-[10px] uppercase tracking-wider text-ink-dim">{open ? <ChevronUp aria-hidden className="h-4 w-4" /> : <ChevronDown aria-hidden className="h-4 w-4" />}</span>
       </button>
 
       <AnimatePresence initial={false}>
@@ -55,7 +57,7 @@ export function SpaceWeatherCard({ env }: { env: EnvironmentId }) {
               />
               {sw.scenario === 'today' && (
                 <button onClick={sw.refresh} disabled={sw.refreshing} className="min-h-9 rounded-lg px-2 font-mono text-[10px] uppercase tracking-wider text-accent hover:bg-white/5 disabled:opacity-50">
-                  {sw.refreshing ? 'Refreshing…' : '↻ Refresh from NASA'}
+                  {sw.refreshing ? 'Refreshing…' : <><RefreshCw className={inl} /> Refresh from NASA</>}
                 </button>
               )}
             </div>

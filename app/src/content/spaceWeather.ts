@@ -7,7 +7,7 @@ export const EVENT_INFO: Record<Kind, { label: string; short: string; meaning: s
   SEP: {
     label: 'Solar particle event',
     short: 'SEP',
-    meaning: 'High-energy particles from the Sun. This is the direct radiation hazard for crews outside Earth’s magnetic field — shelter until it passes.',
+    meaning: 'High-energy particles from the Sun. This is the direct radiation hazard for crews outside Earth’s magnetic field. Shelter until it passes.',
     color: '#ff5a4e',
   },
   CME: {

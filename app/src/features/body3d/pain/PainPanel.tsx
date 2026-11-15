@@ -1,3 +1,5 @@
+import { ToneIcon } from '../../../components/ToneIcon'
+import { X } from 'lucide-react'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { relTime } from '../../../state/crewStore'
@@ -13,7 +15,7 @@ function Guidance({ region, severity, onEmergency }: { region: RegionId; severit
     <div className="flex flex-col gap-2 text-sm">
       {escalate && (
         <div className="rounded-lg border border-warning/50 bg-warning/10 p-3 text-warning">
-          <b>◆ This needs a doctor now.</b> Pain this strong{region === 'chest' ? ' in the chest' : ''} should go to the Crew Medical Officer or flight surgeon.
+          <b><ToneIcon tone="warning" /> This needs a doctor now.</b> Pain this strong{region === 'chest' ? ' in the chest' : ''} should go to the Crew Medical Officer or flight surgeon.
           <button onClick={onEmergency} className={`${btn} mt-2 w-full bg-warning text-space-950`}>
             Start Emergency guide
           </button>
@@ -28,7 +30,7 @@ function Guidance({ region, severity, onEmergency }: { region: RegionId; severit
           ))}
         </ul>
       </div>
-      <p className="rounded-lg bg-caution/10 p-2 text-xs text-caution">▲ Get help if: {info.redFlags}</p>
+      <p className="rounded-lg bg-caution/10 p-2 text-xs text-caution"><ToneIcon tone="caution" /> Get help if: {info.redFlags}</p>
     </div>
   )
 }
@@ -58,7 +60,7 @@ export function PainForm({
       <div className="flex items-center justify-between">
         <span className="section-h !mb-0">Report pain · {regionLabel(region, side)}</span>
         <button onClick={onCancel} className="font-mono text-xs uppercase text-ink-dim hover:text-ink" aria-label="Cancel">
-          ✕
+          <X aria-hidden className="h-4 w-4" />
         </button>
       </div>
       <div>
@@ -121,16 +123,16 @@ export function PainSpotCard({
   const first = h[0]
   const last = spot.latest
   const delta = last.severity - first.severity
-  const trend = h.length < 2 ? null : delta < 0 ? { t: `● Easing: ${first.severity} → ${last.severity}`, c: 'text-nominal' } : delta > 0 ? { t: `◆ Getting worse: ${first.severity} → ${last.severity}`, c: 'text-warning' } : { t: `▲ No change: ${last.severity}/10`, c: 'text-caution' }
+  const trend = h.length < 2 ? null : delta < 0 ? { tone: 'nominal' as const, t: `Easing: ${first.severity} → ${last.severity}`, c: 'text-nominal' } : delta > 0 ? { tone: 'warning' as const, t: `Getting worse: ${first.severity} → ${last.severity}`, c: 'text-warning' } : { tone: 'caution' as const, t: `No change: ${last.severity}/10`, c: 'text-caution' }
   return (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="glass flex max-h-[calc(100vh-290px)] w-[340px] flex-col gap-3 overflow-y-auto p-4 [scrollbar-width:thin]">
       <div className="flex items-center justify-between">
         <span className="section-h !mb-0">Pain · {regionLabel(last.region, last.side)}</span>
         <button onClick={onClose} className="font-mono text-xs uppercase text-ink-dim hover:text-ink" aria-label="Close">
-          ✕
+          <X aria-hidden className="h-4 w-4" />
         </button>
       </div>
-      {trend && <div className={`font-mono text-sm font-semibold ${trend.c}`}>{trend.t}</div>}
+      {trend && <div className={`font-mono text-sm font-semibold ${trend.c}`}><ToneIcon tone={trend.tone} /> {trend.t}</div>}
       {trend && delta > 0 && <p className="text-xs text-warning">Pain that keeps getting worse should be reported, even if it is mild.</p>}
       <div className="flex h-16 items-end gap-1" aria-label="Pain history">
         {h.map((r) => (

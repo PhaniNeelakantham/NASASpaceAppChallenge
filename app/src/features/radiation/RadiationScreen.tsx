@@ -1,3 +1,5 @@
+import { inl } from '../../components/ToneIcon'
+import { Radiation, RefreshCw, Sun } from 'lucide-react'
 import { useMemo } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts'
 import { SourceBadge } from '../../components/SourceBadge'
@@ -94,7 +96,7 @@ export function RadiationScreen({ env }: { env: EnvironmentId }) {
           />
           {sw.scenario === 'today' && (
             <button onClick={sw.refresh} disabled={sw.refreshing} className="min-h-11 rounded-xl border border-white/10 px-3 font-mono text-[11px] uppercase tracking-wider text-accent hover:bg-white/5 disabled:opacity-50">
-              {sw.refreshing ? 'Refreshing…' : '↻ Refresh from NASA'}
+              {sw.refreshing ? 'Refreshing…' : <><RefreshCw className={inl} /> Refresh from NASA</>}
             </button>
           )}
           <div className="flex gap-1 rounded-xl bg-white/[0.04] p-1">
@@ -128,7 +130,7 @@ export function RadiationScreen({ env }: { env: EnvironmentId }) {
         <section className="rounded-2xl border p-5 lg:col-span-2" style={{ borderColor: `${color}66`, background: `${color}0d` }}>
           <div className="flex items-start gap-4">
             <span className="text-4xl" style={{ color }} aria-hidden>
-              {a.level === 'nominal' ? '☀' : '☢'}
+              {a.level === 'nominal' ? <Sun className="h-10 w-10" /> : <Radiation className="h-10 w-10" />}
             </span>
             <div className="min-w-0">
               <div className="font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color }}>

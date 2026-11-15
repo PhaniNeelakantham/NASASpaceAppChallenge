@@ -34,7 +34,7 @@ export const SYSTEMS: Record<SystemId, SystemInfo> = {
     actions: ['Photograph and log any rash', 'Check EVA pressure points after spacewalks', 'Keep skin clean and moisturised'],
     escalateIf: 'Spreading rash, blistering, or rash with fever → Crew Medical Officer.',
     extraIndicators: ['Rash check', 'EVA pressure points', 'Bruising'],
-    source: { label: 'NASA HRP — Risks of Human Spaceflight', url: HRP },
+    source: { label: 'NASA HRP: Risks of Human Spaceflight', url: HRP },
   },
   heart: {
     id: 'heart',
@@ -46,7 +46,7 @@ export const SYSTEMS: Record<SystemId, SystemInfo> = {
     escalateIf: 'Chest pain, fainting, or BP outside limits on two readings → Crew Medical Officer.',
     extraIndicators: ['ECG rhythm'],
     imaging: 'Cardiac ultrasound (echo)',
-    source: { label: 'NASA HRP — Cardiovascular Adaptations', url: HRP },
+    source: { label: 'NASA HRP: Cardiovascular Adaptations', url: HRP },
   },
   lungs: {
     id: 'lungs',
@@ -58,7 +58,7 @@ export const SYSTEMS: Record<SystemId, SystemInfo> = {
     escalateIf: 'SpO₂ below 92% or shortness of breath at rest → Crew Medical Officer immediately.',
     extraIndicators: ['Breathing rate', 'Cabin CO₂'],
     imaging: 'Lung ultrasound',
-    source: { label: 'NASA HRP — Hypoxia', url: HRP },
+    source: { label: 'NASA HRP: Hypoxia', url: HRP },
   },
   eyes: {
     id: 'eyes',
@@ -70,7 +70,7 @@ export const SYSTEMS: Record<SystemId, SystemInfo> = {
     escalateIf: 'New blurred vision or grid distortions → Crew Medical Officer; include in ground digest.',
     extraIndicators: ['Vision grid test', 'Headache log'],
     imaging: 'Ocular ultrasound',
-    source: { label: 'NASA HRP — SANS', url: HRP },
+    source: { label: 'NASA HRP: SANS', url: HRP },
   },
   bones: {
     id: 'bones',
@@ -81,7 +81,7 @@ export const SYSTEMS: Record<SystemId, SystemInfo> = {
     actions: ['Hit resistance exercise target (ARED)', 'Meet calcium and vitamin D intake', 'Stay hydrated (kidney-stone risk)'],
     escalateIf: 'Flank pain or blood in urine → Crew Medical Officer.',
     extraIndicators: ['Calcium intake', 'Hydration'],
-    source: { label: 'NASA HRP — Bone Changes', url: HRP },
+    source: { label: 'NASA HRP: Bone Changes', url: HRP },
   },
   muscle: {
     id: 'muscle',
@@ -93,7 +93,7 @@ export const SYSTEMS: Record<SystemId, SystemInfo> = {
     escalateIf: 'Body mass drops >5% from baseline → Crew Medical Officer.',
     extraIndicators: ['Strength test'],
     imaging: 'Muscle ultrasound',
-    source: { label: 'NASA HRP — Reduced Fitness', url: HRP },
+    source: { label: 'NASA HRP: Reduced Fitness', url: HRP },
   },
   immune: {
     id: 'immune',
@@ -104,7 +104,7 @@ export const SYSTEMS: Record<SystemId, SystemInfo> = {
     actions: ['Re-measure temperature in 1 hour', 'Log symptoms (rash, cold sores)', 'Rest and hydrate'],
     escalateIf: 'Temperature ≥ 38.3 °C twice or worsening rash → Crew Medical Officer.',
     extraIndicators: ['Symptom log', 'Blood count (CBC)'],
-    source: { label: 'NASA HRP — Immune System', url: HRP },
+    source: { label: 'NASA HRP: Immune System', url: HRP },
   },
   gut: {
     id: 'gut',
@@ -116,7 +116,7 @@ export const SYSTEMS: Record<SystemId, SystemInfo> = {
     escalateIf: 'Glucose below 70 or above 180 mg/dL with symptoms → Crew Medical Officer.',
     extraIndicators: ['Meal log'],
     imaging: 'Abdominal ultrasound',
-    source: { label: 'NASA HRP — Food and Nutrition', url: HRP },
+    source: { label: 'NASA HRP: Food and Nutrition', url: HRP },
   },
   mind: {
     id: 'mind',
@@ -127,7 +127,7 @@ export const SYSTEMS: Record<SystemId, SystemInfo> = {
     actions: ['Schedule private family contact', 'Take a short break from screens', 'Talk with a crewmate you trust'],
     escalateIf: 'Low mood for 5+ days or thoughts of self-harm → Crew Medical Officer and ground psychologist.',
     extraIndicators: ['Private journal'],
-    source: { label: 'NASA HRP — Behavioral Health', url: HRP },
+    source: { label: 'NASA HRP: Behavioral Health', url: HRP },
   },
   sleep: {
     id: 'sleep',
@@ -138,7 +138,7 @@ export const SYSTEMS: Record<SystemId, SystemInfo> = {
     actions: ['Protect tonight’s sleep window', 'Avoid critical tasks if reaction test is poor', 'Dim screens 1 h before sleep'],
     escalateIf: 'Under 5 h sleep for 3+ nights with rising reaction-test lapses → reschedule critical tasks with CMO.',
     extraIndicators: ['Light exposure'],
-    source: { label: 'NASA HRP — Sleep', url: HRP },
+    source: { label: 'NASA HRP: Sleep', url: HRP },
   },
 }
 

@@ -116,7 +116,7 @@ export function SpaceWeatherProvider({ children }: { children: ReactNode }) {
       })
   }, [])
 
-  // Bundled snapshot first (works offline). Auto-refresh only with a personal API key —
+  // Bundled snapshot first (works offline). Auto-refresh only with a personal API key , 
   // the shared DEMO_KEY allows ~30 requests/hour, so otherwise refresh is on demand.
   useEffect(() => {
     fetch(`${BASE}data/donki_snapshot.json`)

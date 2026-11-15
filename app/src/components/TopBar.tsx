@@ -1,3 +1,5 @@
+import { inl, ToneIcon } from './ToneIcon'
+import { Moon, Sun } from 'lucide-react'
 import { CREW, CURRENT_DAY } from '../data/syntheticCrew'
 import { useComms } from '../state/comms'
 import { useRoutine } from '../state/routine'
@@ -13,7 +15,7 @@ interface Props {
   onEmergency: () => void
 }
 
-function Stat({ label, value, tone }: { label: string; value: string; tone?: string }) {
+function Stat({ label, value, tone }: { label: string; value: React.ReactNode; tone?: string }) {
   return (
     <div className="flex flex-col leading-tight">
       <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-dim">{label}</span>
@@ -35,7 +37,7 @@ function CommsChip() {
   const ms = p === 'transit' ? next.arriveAt - now : next.replyAt - now
   return (
     <div className="flex items-center gap-2 rounded-xl border border-caution/40 bg-caution/10 px-3 py-1.5" title={`To: ${next.to}`}>
-      <span className="text-caution">▲</span>
+      <ToneIcon tone="caution" className="text-caution" />
       <Stat label={`${label}${pending.length > 1 ? ` · ${pending.length}` : ''}`} value={formatCountdown(ms)} tone="text-caution" />
     </div>
   )
@@ -52,7 +54,7 @@ function RoutineChip() {
       <Stat label="Level" value={String(stats.level.level)} tone="text-accent" />
       <Stat
         label="Check-in streak"
-        value={`${stats.streaks.checkin} d${stats.checkinAtRisk ? ' ▲' : ''}`}
+        value={<>{stats.streaks.checkin} d{stats.checkinAtRisk && <> <ToneIcon tone="caution" /></>}</>}
         tone={stats.checkinAtRisk ? 'text-caution' : 'text-nominal'}
       />
     </div>
@@ -78,7 +80,7 @@ export function TopBar({ env, onEnv, crewId, onCrew, night, onNight, onEmergency
         <select value={env} onChange={(ev) => onEnv(ev.target.value as EnvironmentId)} className={select} aria-label="Mission environment">
           {ENVIRONMENT_LIST.map((x) => (
             <option key={x.id} value={x.id} className="bg-space-900">
-              {x.kind} — {x.label}
+              {x.kind}: {x.label}
             </option>
           ))}
         </select>
@@ -89,7 +91,7 @@ export function TopBar({ env, onEnv, crewId, onCrew, night, onNight, onEmergency
       <div title={e.note}>
         <Stat
           label="Earth link · one-way"
-          value={delayed ? `▲ ${formatDelay(e.oneWayDelaySec)}` : `● ${formatDelay(e.oneWayDelaySec)}`}
+          value={<><ToneIcon tone={delayed ? 'caution' : 'nominal'} /> {formatDelay(e.oneWayDelaySec)}</>}
           tone={delayed ? 'text-caution' : 'text-nominal'}
         />
       </div>
@@ -100,13 +102,13 @@ export function TopBar({ env, onEnv, crewId, onCrew, night, onNight, onEmergency
         <button
           onClick={onEmergency}
           className="flex min-h-12 items-center gap-2 rounded-xl bg-warning px-5 font-mono text-sm font-black uppercase tracking-[0.15em] text-space-950 shadow-[0_0_0_3px_rgba(255,90,78,0.25)] hover:brightness-110"
-          aria-label="Emergency — start guided first response"
+          aria-label="Emergency: start guided first response"
         >
           <span className="grid h-6 w-6 place-items-center rounded-full bg-space-950 text-warning">!</span>
           Emergency
         </button>
         <button onClick={onNight} className={select} aria-pressed={night}>
-          {night ? '☀ Day' : '☾ Night'}
+          {night ? <><Sun className={inl} /> Day</> : <><Moon className={inl} /> Night</>}
         </button>
         <select value={crewId} onChange={(ev) => onCrew(ev.target.value)} className={select} aria-label="Crew member">
           {CREW.map((c) => (

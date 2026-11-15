@@ -1,12 +1,12 @@
 /**
- * HALO AI assistant — server side (Claude Haiku 5.5 via the official Anthropic SDK).
+ * HALO AI assistant, server side (Claude Haiku 5.5 via the official Anthropic SDK).
  *
  * Runs as a Vercel Function in production (POST /api/assistant) and is loaded by the Vite dev
  * server locally (see vite.config.ts), so the API key never reaches the browser.
  *
  * One API call per user message. The model never executes anything itself: it returns short
  * guidance plus *proposed* actions (tool_use blocks). The app shows each proposal and a crew
- * member confirms it — so no tool results are sent back and there is no agent loop.
+ * member confirms it, so no tool results are sent back and there is no agent loop.
  */
 import Anthropic from '@anthropic-ai/sdk'
 
@@ -20,7 +20,7 @@ export interface ChatTurn {
 export interface AssistantRequest {
   mode: Mode
   messages: ChatTurn[]
-  /** Current app state (environment, vitals, current step, …) — attached to the latest message. */
+  /** Current app state (environment, vitals, current step, …), attached to the latest message. */
   context: unknown
   /** Skin mode only: up to two labelled photos (JPEG/PNG data URLs), attached to the latest message. */
   images?: { label: string; dataUrl: string }[]
@@ -46,16 +46,16 @@ const SYSTEM_IDS = ['skin', 'heart', 'lungs', 'eyes', 'bones', 'muscle', 'immune
 /* Prompts                                                              */
 /* ------------------------------------------------------------------ */
 
-const EMERGENCY_PROMPT = `You are HALO, the emergency copilot on a crewed space mission. You talk with a crew member who is not a doctor while they help a crewmate in a medical emergency — like a calm emergency dispatcher who stays on the line. Their messages are short, typed or spoken, and may be panicked. Your words are read aloud.
+const EMERGENCY_PROMPT = `You are HALO, the emergency copilot on a crewed space mission. You talk with a crew member who is not a doctor while they help a crewmate in a medical emergency, like a calm emergency dispatcher who stays on the line. Their messages are short, typed or spoken, and may be panicked. Your words are read aloud.
 
 How to reply:
 - One to three short spoken sentences, plain words, no markdown or lists. Sound like a calm person on the line: acknowledge what they said in a few words, give the single most important instruction, then (when useful) ask one focused question.
 - Always write words, even when you also call tools.
 - Use their crewmate's title (for example "the Commander") from the context.
-- The app runs checked step-by-step guides (protocol ids: collapse, chest, breath, bleed, toxic, dcs). They are the source of truth. Never invent procedures, never name drugs or doses — for medicines say "follow the medical kit card".
+- The app runs checked step-by-step guides (protocol ids: collapse, chest, breath, bleed, toxic, dcs). They are the source of truth. Never invent procedures, never name drugs or doses. For medicines, say "follow the medical kit card".
 - No patient chosen yet: if their words make clear who is hurt, call choose_patient with that crew id.
 - No guide running yet: call choose_protocol with the best match. If unsure, or the patient may be unresponsive or not breathing normally, choose "collapse" (it starts with safety and breathing checks).
-- A guide is running: coach them through the CURRENT step in your own words (what to look for, how to do it in their gravity — in 0 g, anchor yourself and the patient first). If their words clearly answer the current step, call answer_step with one of the answers listed in currentStep.answers (an action step only accepts "done", even when its wording is a question; if what they said means the action is not complete, do not call answer_step — tell them what to do instead). If not, ask the current step's question again, more simply. Never answer any other step.
+- A guide is running: coach them through the CURRENT step in your own words (what to look for, how to do it in their gravity; in 0 g, anchor yourself and the patient first). If their words clearly answer the current step, call answer_step with one of the answers listed in currentStep.answers (an action step only accepts "done", even when its wording is a question; if what they said means the action is not complete, do not call answer_step, tell them what to do instead). If not, ask the current step's question again, more simply. Never answer any other step.
 - During CPR, keep them going: push hard and fast in the centre of the chest, about two per second, swap rescuers every two minutes if there is one.
 - If they are frightened, reassure briefly ("You're doing the right thing") and keep them on task.
 - Treat not breathing, unresponsive, no pulse or severe bleeding as the most urgent.
@@ -99,7 +99,7 @@ How to reply:
 - Each user message ends with a JSON context block. Use it; do not read it back.`
 
 /* ------------------------------------------------------------------ */
-/* Tools (proposals only — strict schemas so arguments always validate) */
+/* Tools (proposals only, strict schemas so arguments always validate) */
 /* ------------------------------------------------------------------ */
 
 const str = (description: string) => ({ type: 'string' as const, description })
@@ -145,13 +145,13 @@ function fallbackText(mode: Mode, actions: ProposedAction[]): string {
   const parts: string[] = []
   for (const a of actions) {
     const v = (k: string) => String(a.args[k] ?? '')
-    if (a.name === 'open_system') parts.push(`Here’s your ${SYSTEM_NAMES[v('system_id')] ?? 'body system'} on the body — tap its card for your readings and what to do.`)
+    if (a.name === 'open_system') parts.push(`Here’s your ${SYSTEM_NAMES[v('system_id')] ?? 'body system'} on the body. Tap its card for your readings and what to do.`)
     if (a.name === 'open_tab') parts.push(`I’ve opened the ${v('tab')} screen for you.`)
-    if (a.name === 'start_emergency') parts.push('This sounds like an emergency — opening the emergency guide now.')
-    if (a.name === 'choose_protocol') parts.push(`Start the “${PROTOCOL_NAMES[v('protocol_id')] ?? 'emergency'}” guide — confirm below.`)
-    if (a.name === 'answer_step') parts.push(`I think the answer to this step is “${v('answer')}” — confirm below.`)
+    if (a.name === 'start_emergency') parts.push('This sounds like an emergency. Opening the emergency guide now.')
+    if (a.name === 'choose_protocol') parts.push(`Start the “${PROTOCOL_NAMES[v('protocol_id')] ?? 'emergency'}” guide. Confirm below.`)
+    if (a.name === 'answer_step') parts.push(`I think the answer to this step is “${v('answer')}”. Confirm below.`)
     if (a.name === 'choose_patient') parts.push('Confirm who the patient is below.')
-    if (a.name === 'send_consult') parts.push('I drafted a message to the ground — confirm below to send it.')
+    if (a.name === 'send_consult') parts.push('I drafted a message to the ground. Confirm below to send it.')
   }
   if (parts.length) return parts.join(' ')
   if (mode === 'skin') return 'LEVEL: watch\nThe photos could not be compared. Keep photographing daily and show your Crew Medical Officer if it changes.'
@@ -238,14 +238,21 @@ export async function handleAssistant(body: unknown, apiKey: string | undefined,
       const msg = req.mode === 'skin' ? 'LEVEL: watch\nI can’t assess these photos. Show them to your Crew Medical Officer.' : 'I can’t help with that here. Keep following the step-by-step guide and contact your Crew Medical Officer.'
       return { status: 200, body: { ok: true, text: msg, actions: [], model: useModel } }
     }
-    const text = res.content
-      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-      .map((b) => b.text)
-      .join(' ')
-      .trim()
+    // The app's style has no em dashes, so swap any the model writes for a comma.
+    const noDash = (s: string) => s.replace(/\s*—\s*/g, ', ')
+    const text = noDash(
+      res.content
+        .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+        .map((b) => b.text)
+        .join(' ')
+        .trim(),
+    )
     const actions = res.content
       .filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use')
-      .map((b) => ({ name: b.name, args: (b.input ?? {}) as Record<string, unknown> }))
+      .map((b) => ({
+        name: b.name,
+        args: Object.fromEntries(Object.entries((b.input ?? {}) as Record<string, unknown>).map(([k, v]) => [k, typeof v === 'string' ? noDash(v) : v])),
+      }))
     return { status: 200, body: { ok: true, text: text || fallbackText(req.mode, actions), actions, model: useModel } }
   } catch (e) {
     if (e instanceof Anthropic.RateLimitError) return { status: 429, body: { ok: false, error: 'rate_limited', message: 'Rate limit reached. Try again in a minute.' } }

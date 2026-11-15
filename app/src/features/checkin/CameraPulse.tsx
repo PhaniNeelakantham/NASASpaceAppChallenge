@@ -1,3 +1,4 @@
+import { ToneIcon } from '../../components/ToneIcon'
 import { useEffect, useRef, useState } from 'react'
 import { estimateBpm, pulseWave, type Sample } from './pulse'
 
@@ -8,7 +9,7 @@ type Phase = 'starting' | 'place' | 'measuring' | 'done' | 'error'
 
 /**
  * Measures pulse with the camera: cover the lens with a fingertip, keep still for 20 s.
- * Experimental — a check against the Bio-Monitor, not a medical device.
+ * Experimental, a check against the Bio-Monitor, not a medical device.
  */
 export function CameraPulse({ onResult, onCancel, onRetry }: { onResult: (bpm: number) => void; onCancel: () => void; onRetry: () => void }) {
   const video = useRef<HTMLVideoElement>(null)
@@ -177,9 +178,9 @@ export function CameraPulse({ onResult, onCancel, onRetry }: { onResult: (bpm: n
             </p>
           )}
           {phase === 'done' && !good && (
-            <p className="text-caution">▲ Signal too weak to trust. Try again with more light and a still finger, or enter it by hand.</p>
+            <p className="text-caution"><ToneIcon tone="caution" /> Signal too weak to trust. Try again with more light and a still finger, or enter it by hand.</p>
           )}
-          {phase === 'error' && <p className="text-caution">▲ {error}</p>}
+          {phase === 'error' && <p className="text-caution"><ToneIcon tone="caution" /> {error}</p>}
         </div>
       </div>
 

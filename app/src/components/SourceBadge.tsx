@@ -1,3 +1,4 @@
+import { Circle } from 'lucide-react'
 /** Data provenance: every number says whether it is real NASA data or simulated. */
 export function SourceBadge({ kind, label }: { kind: 'nasa' | 'sim' | 'published'; label?: string }) {
   const style =
@@ -9,7 +10,7 @@ export function SourceBadge({ kind, label }: { kind: 'nasa' | 'sim' | 'published
   const text = label ?? (kind === 'nasa' ? 'NASA data' : kind === 'published' ? 'Published values' : 'Simulated')
   return (
     <span className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider ${style}`}>
-      {kind === 'nasa' ? '●' : '○'} {text}
+      <Circle aria-hidden className="h-2 w-2" fill={kind === 'nasa' ? 'currentColor' : 'none'} /> {text}
     </span>
   )
 }

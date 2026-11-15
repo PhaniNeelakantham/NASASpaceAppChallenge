@@ -1,3 +1,5 @@
+import { inl, ToneIcon } from '../../../components/ToneIcon'
+import { FastForward } from 'lucide-react'
 import { SYSTEMS } from '../../../content/systems'
 import { useComms } from '../../../state/comms'
 import { ENVIRONMENTS, formatCountdown, formatDelay, type EnvironmentId } from '../../../state/mission'
@@ -79,9 +81,9 @@ export function EscalationPanel({ view, env, color }: Props) {
               <li key={m.id} className="rounded-lg bg-white/[0.03] p-2.5 text-[12px]">
                 <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-wider">
                   <span className="text-ink-dim">To {m.to}</span>
-                  {p === 'transit' && <span className="text-caution">▲ In transit · arrives {formatCountdown(m.arriveAt - now)}</span>}
-                  {p === 'awaiting' && <span className="text-caution">▲ Delivered · reply in {formatCountdown(m.replyAt - now)}</span>}
-                  {p === 'replied' && <span className="text-nominal">● Reply received</span>}
+                  {p === 'transit' && <span className="text-caution"><ToneIcon tone="caution" /> In transit · arrives {formatCountdown(m.arriveAt - now)}</span>}
+                  {p === 'awaiting' && <span className="text-caution"><ToneIcon tone="caution" /> Delivered · reply in {formatCountdown(m.replyAt - now)}</span>}
+                  {p === 'replied' && <span className="text-nominal"><ToneIcon tone="nominal" /> Reply received</span>}
                 </div>
                 <p className="mt-1 text-ink-dim">“{m.body}”</p>
                 {p === 'replied' && (
@@ -92,7 +94,7 @@ export function EscalationPanel({ view, env, color }: Props) {
                 )}
                 {p !== 'replied' && m.mode === 'queued' && (
                   <button onClick={fastForward} className="mt-2 min-h-10 rounded-lg border border-white/10 px-3 font-mono text-[10px] uppercase tracking-wider text-ink-dim hover:text-ink">
-                    ⏩ Demo: skip ahead
+                    <FastForward className={inl} /> Demo: skip ahead
                   </button>
                 )}
               </li>

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 /**
  * Small helpers for remembering progress in this browser (localStorage).
  * Every read/write is wrapped: storage can be blocked (private windows, cleared site data),
- * and the app must still work — it just won't remember.
+ * and the app must still work, it just won't remember.
  */
 
 export function readJSON<T>(key: string, fallback: T): T {
@@ -23,7 +23,7 @@ export function writeJSON(key: string, value: unknown) {
   }
 }
 
-/** Local calendar day, e.g. "2026-11-14" — for progress that resets each day. */
+/** Local calendar day, e.g. "2026-11-14", for progress that resets each day. */
 export function today(): string {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`

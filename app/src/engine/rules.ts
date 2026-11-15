@@ -24,7 +24,7 @@ function streakOf(readings: Reading[], def: MetricDef, b: Baseline): number {
   return n
 }
 
-/** Evaluates the latest reading for one crew member. Pure function — unit-test this. */
+/** Evaluates the latest reading for one crew member. Pure function, unit-test this. */
 export function evaluate(readings: Reading[]): Finding[] {
   const latest = readings.at(-1)
   if (!latest) return []

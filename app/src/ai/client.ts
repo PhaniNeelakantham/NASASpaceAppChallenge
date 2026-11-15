@@ -1,4 +1,4 @@
-// Browser side of the HALO assistant. Talks only to our own /api/assistant route — never to Gemini directly.
+// Browser side of the HALO assistant. Talks only to our own /api/assistant route, never to Gemini directly.
 
 export type Mode = 'emergency' | 'ask' | 'handover' | 'skin'
 
@@ -47,7 +47,7 @@ export function failureText(r: Extract<AssistantResult, { ok: false }>): string 
       return 'AI is busy (rate limit). Keep following the steps; try again in a minute.'
     case 'offline':
     case 'timeout':
-      return 'AI unavailable — no connection. Using the offline guide.'
+      return 'AI unavailable: no connection. Using the offline guide.'
     default:
       return 'AI unavailable right now. The step-by-step guide still works.'
   }

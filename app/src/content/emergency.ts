@@ -1,3 +1,4 @@
+import { Bone, CloudFog, Droplet, HeartPulse, UserX, Wind, type LucideIcon } from 'lucide-react'
 import type { EnvironmentId } from '../state/mission'
 import type { SystemId } from '../types'
 
@@ -6,7 +7,7 @@ import type { SystemId } from '../types'
  *
  * Content follows standard lay first-aid logic (check safety → response → breathing → CPR/position →
  * monitor → escalate), adapted for microgravity. It never gives drug doses: it points to the
- * vehicle's medical kit checklist. PROTOTYPE decision support — must be reviewed by flight surgeons.
+ * vehicle's medical kit checklist. PROTOTYPE decision support. It must be reviewed by flight surgeons.
  */
 
 export interface Ctx {
@@ -30,7 +31,7 @@ export interface Protocol {
   title: string
   /** Short tile label. */
   tile: string
-  icon: string
+  icon: LucideIcon
   /** Body system the emergency belongs to (used for the consult message). */
   system: SystemId
   start: string
@@ -43,12 +44,12 @@ export function txt(t: Txt | undefined, c: Ctx): string {
 }
 
 export const PROTOCOLS: Protocol[] = [
-  { id: 'collapse', title: 'Collapsed / not responding', tile: 'Collapsed or not responding', icon: '⬇', system: 'heart', start: 'safe', urgent: true },
-  { id: 'chest', title: 'Chest pain', tile: 'Chest pain', icon: '♥', system: 'heart', start: 'c_awake', urgent: true },
-  { id: 'breath', title: 'Trouble breathing / low oxygen', tile: 'Can’t breathe / low oxygen', icon: '≋', system: 'lungs', start: 'b_awake', urgent: true },
-  { id: 'bleed', title: 'Heavy bleeding / injury', tile: 'Heavy bleeding or injury', icon: '✚', system: 'skin', start: 'x_gloves', urgent: false },
-  { id: 'toxic', title: 'Smoke or toxic leak', tile: 'Smoke or toxic leak', icon: '☁', system: 'lungs', start: 't_mask', urgent: false },
-  { id: 'dcs', title: 'Pain or numbness after a spacewalk', tile: 'Joint pain / numbness after EVA', icon: '◎', system: 'muscle', start: 'd_after', urgent: false },
+  { id: 'collapse', title: 'Collapsed / not responding', tile: 'Collapsed or not responding', icon: UserX, system: 'heart', start: 'safe', urgent: true },
+  { id: 'chest', title: 'Chest pain', tile: 'Chest pain', icon: HeartPulse, system: 'heart', start: 'c_awake', urgent: true },
+  { id: 'breath', title: 'Trouble breathing / low oxygen', tile: 'Can’t breathe / low oxygen', icon: Wind, system: 'lungs', start: 'b_awake', urgent: true },
+  { id: 'bleed', title: 'Heavy bleeding / injury', tile: 'Heavy bleeding or injury', icon: Droplet, system: 'skin', start: 'x_gloves', urgent: false },
+  { id: 'toxic', title: 'Smoke or toxic leak', tile: 'Smoke or toxic leak', icon: CloudFog, system: 'lungs', start: 't_mask', urgent: false },
+  { id: 'dcs', title: 'Pain or numbness after a spacewalk', tile: 'Joint pain / numbness after EVA', icon: Bone, system: 'muscle', start: 'd_after', urgent: false },
 ]
 
 const N: EmergencyNode[] = [
@@ -75,14 +76,14 @@ const N: EmergencyNode[] = [
       c.env === 'rover'
         ? 'Radio the base now. Then grab the first-aid kit within reach.'
         : 'Shout for the crew. Send one person for the medical kit and the defibrillator (AED).',
-    detail: 'If you are alone, keep going — HALO is logging everything for the team.',
+    detail: 'If you are alone, keep going. HALO is logging everything for the team.',
     next: 'breathing',
   },
   {
     kind: 'ask',
     id: 'breathing',
     text: 'Tilt the head back and lift the chin. Look, listen and feel for 10 seconds. Breathing normally?',
-    detail: 'Occasional gasps are NOT normal breathing — answer No.',
+    detail: 'Occasional gasps are NOT normal breathing, so answer No.',
     yes: 'recovery',
     no: 'cpr_setup',
   },
@@ -95,8 +96,8 @@ const N: EmergencyNode[] = [
         : 'Lay them on their back on a firm floor. Kneel next to their chest.',
     detail: (c) =>
       c.zeroG
-        ? 'In 0 g every push moves you away. Lock yourself in place first — or wrap your legs around their torso.'
-        : 'Low gravity means you weigh less — use your arms and shoulders, not just body weight.',
+        ? 'In 0 g every push moves you away. Lock yourself in place first, or wrap your legs around their torso.'
+        : 'Low gravity means you weigh less, so use your arms and shoulders, not just body weight.',
     next: 'cpr',
   },
   {
@@ -121,7 +122,7 @@ const N: EmergencyNode[] = [
     text: 'Are they breathing normally now?',
     yes: 'recovery',
     no: 'cpr',
-    noLabel: 'No — continue CPR',
+    noLabel: 'No, continue CPR',
   },
   {
     kind: 'do',
@@ -170,7 +171,7 @@ const N: EmergencyNode[] = [
     text: (c) => `Is ${c.patient} awake and breathing normally?`,
     yes: 'c_rest',
     no: 'help',
-    noLabel: 'No — start resuscitation',
+    noLabel: 'No, start resuscitation',
   },
   {
     kind: 'do',
@@ -203,7 +204,7 @@ const N: EmergencyNode[] = [
     kind: 'do',
     id: 'c_kit',
     text: 'Open the chest-pain card in the medical kit and follow it. Check allergies first.',
-    detail: 'The card covers medicines such as aspirin. HALO does not give doses — the kit card does.',
+    detail: 'The card covers medicines such as aspirin. HALO does not give doses. The kit card does.',
     next: 'c_watch',
   },
   {
@@ -221,7 +222,7 @@ const N: EmergencyNode[] = [
     text: 'Did they become unresponsive or stop breathing normally?',
     yes: 'help',
     no: 'c_end',
-    yesLabel: 'Yes — start resuscitation',
+    yesLabel: 'Yes, start resuscitation',
   },
   {
     kind: 'end',
@@ -263,7 +264,7 @@ const N: EmergencyNode[] = [
     kind: 'do',
     id: 'b_o2',
     text: 'Give oxygen by mask now, following the medical kit checklist.',
-    detail: (c) => (c.zeroG ? 'Keep them upright relative to you and calm — slow breaths.' : 'Help them sit upright — it makes breathing easier.'),
+    detail: (c) => (c.zeroG ? 'Keep them upright relative to you and calm, with slow breaths.' : 'Help them sit upright. It makes breathing easier.'),
     next: 'b_watch',
   },
   {
@@ -294,7 +295,7 @@ const N: EmergencyNode[] = [
   {
     kind: 'do',
     id: 'x_press',
-    text: 'Press firmly on the wound with gauze. Don’t lift it to check — keep pressing.',
+    text: 'Press firmly on the wound with gauze. Don’t lift it to check. Keep pressing.',
     detail: 'Hold steady pressure for 10 minutes.',
     tool: 'timer',
     timerSec: 600,

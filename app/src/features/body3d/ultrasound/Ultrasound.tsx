@@ -1,3 +1,5 @@
+import { ToneIcon } from '../../../components/ToneIcon'
+import { X } from 'lucide-react'
 import { useRef } from 'react'
 import { Html } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
@@ -42,7 +44,7 @@ export const EXAMS: UsExam[] = [
   {
     id: 'jugular',
     label: 'Neck · jugular vein',
-    why: 'An ISS study found slow or even reversed blood flow — and some clots — in astronauts’ neck veins. Scans catch this early.',
+    why: 'An ISS study found slow or even reversed blood flow (and some clots) in astronauts’ neck veins. Scans catch this early.',
     probe: [-0.045, 1.55, 0.06],
     aim: [0, 0, -1],
     steps: [
@@ -52,7 +54,7 @@ export const EXAMS: UsExam[] = [
       'Press gently. A healthy vein flattens fully. Save the clip.',
       'Rotate the probe along the vein and save a second clip.',
     ],
-    lookFor: 'A vein that does not squash when pressed (possible clot) — report to the flight surgeon.',
+    lookFor: 'A vein that does not squash when pressed (possible clot). Report to the flight surgeon.',
   },
   {
     id: 'heart',
@@ -159,7 +161,7 @@ export function UltrasoundPanel({
       <div className="flex items-center justify-between">
         <span className="section-h !mb-0">Ultrasound self-scan{exam ? ` · ${exam.label}` : ''}</span>
         <button onClick={onClose} className="font-mono text-xs uppercase text-ink-dim hover:text-ink" aria-label="Close">
-          ✕
+          <X aria-hidden className="h-4 w-4" />
         </button>
       </div>
       {!exam ? (
@@ -190,7 +192,7 @@ export function UltrasoundPanel({
           </div>
           {step === exam.steps.length - 1 && (
             <div className="flex flex-col gap-2 text-sm">
-              <p className="rounded-lg bg-caution/10 p-2 text-xs text-caution">▲ Look for: {exam.lookFor}</p>
+              <p className="rounded-lg bg-caution/10 p-2 text-xs text-caution"><ToneIcon tone="caution" /> Look for: {exam.lookFor}</p>
               <p className="text-xs text-ink-dim">
                 {live
                   ? 'Ground can watch this scan live: a flight surgeon can guide you in real time.'

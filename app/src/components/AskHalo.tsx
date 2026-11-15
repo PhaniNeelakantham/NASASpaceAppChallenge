@@ -38,7 +38,7 @@ export function AskHalo({ context, onOpenSystem, onEmergency, onOpenTab, starter
   const field = useRef<HTMLInputElement>(null)
 
   // Keep the newest message in view by scrolling only the message list. (scrollIntoView would also
-  // scroll every ancestor — including the screen — to reveal the drawer while it is closed.)
+  // scroll every ancestor, including the screen, to reveal the drawer while it is closed.)
   useEffect(() => {
     const el = list.current
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
@@ -91,7 +91,7 @@ export function AskHalo({ context, onOpenSystem, onEmergency, onOpenTab, starter
       }}
       onPointerDown={(e) => e.stopPropagation()}
     >
-      {/* Handle — always visible on the right edge */}
+      {/* Handle, always visible on the right edge */}
       <button
         onClick={() => setOpen((o) => !o)}
         className="glass pointer-events-auto flex h-44 shrink-0 flex-col items-center justify-center gap-3 !rounded-r-none border-r-0 text-accent hover:brightness-125"

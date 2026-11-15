@@ -1,5 +1,6 @@
+import { inl, ToneIcon } from '../../components/ToneIcon'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Sparkles } from 'lucide-react'
+import { Camera, Sparkles, X } from 'lucide-react'
 import { askAssistant, failureText } from '../../ai/client'
 import { DAY_MS, relTime, uid, useCrewStore } from '../../state/crewStore'
 import { usePersistentState } from '../../state/persist'
@@ -69,9 +70,9 @@ interface AiCompare {
 }
 
 const LEVEL_UI: Record<Level, { label: string; cls: string }> = {
-  same: { label: '● Looks the same or better', cls: 'border-nominal/40 bg-nominal/10 text-nominal' },
-  watch: { label: '▲ Keep watching', cls: 'border-caution/40 bg-caution/10 text-caution' },
-  show_cmo: { label: '◆ Show your Crew Medical Officer', cls: 'border-warning/40 bg-warning/10 text-warning' },
+  same: { label: 'Looks the same or better', cls: 'border-nominal/40 bg-nominal/10 text-nominal' },
+  watch: { label: 'Keep watching', cls: 'border-caution/40 bg-caution/10 text-caution' },
+  show_cmo: { label: 'Show your Crew Medical Officer', cls: 'border-warning/40 bg-warning/10 text-warning' },
 }
 
 const describe = (p: Photo, which: string) =>
@@ -135,7 +136,7 @@ export function PhotoLog({ crewId }: { crewId: string }) {
         }
       })
     } catch {
-      setCamError('Camera not available — use “Upload photo” instead.')
+      setCamError('Camera not available. Use “Upload photo” instead.')
     }
   }
 
@@ -232,14 +233,14 @@ export function PhotoLog({ crewId }: { crewId: string }) {
                 Cancel
               </button>
               <button onClick={snap} className="min-h-11 flex-[2] rounded-lg bg-accent text-sm font-semibold text-space-950">
-                ◉ Take photo
+                <Camera className={inl} /> Take photo
               </button>
             </div>
           </div>
         ) : (
           <div className="flex gap-2">
             <button onClick={startCamera} className="min-h-11 flex-1 rounded-lg bg-accent text-sm font-semibold text-space-950">
-              ◉ Use camera
+              <Camera className={inl} /> Use camera
             </button>
             <button onClick={() => fileInput.current?.click()} className="min-h-11 flex-1 rounded-lg bg-space-800 text-sm">
               Upload photo
@@ -247,8 +248,8 @@ export function PhotoLog({ crewId }: { crewId: string }) {
             <input ref={fileInput} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => upload(e.target.files?.[0])} />
           </div>
         )}
-        {camError && <p className="text-xs text-caution">▲ {camError}</p>}
-        {failed && <p className="text-xs text-caution">▲ Storage is full — delete old photos to save new ones.</p>}
+        {camError && <p className="text-xs text-caution"><ToneIcon tone="caution" /> {camError}</p>}
+        {failed && <p className="text-xs text-caution"><ToneIcon tone="caution" /> Storage is full. Delete old photos to save new ones.</p>}
       </div>
 
       {cmp && first && last && (
@@ -277,10 +278,10 @@ export function PhotoLog({ crewId }: { crewId: string }) {
           {growth !== null && (
             <p className={`rounded-lg p-2 text-sm ${growth >= 1.3 ? 'bg-warning/10 text-warning' : growth > 1 ? 'bg-caution/10 text-caution' : 'bg-nominal/10 text-nominal'}`}>
               {growth >= 1.3
-                ? `◆ Spreading: ${Math.round((growth - 1) * 100)} % larger. A spreading rash — especially with fever — should go to the Crew Medical Officer. In space it can be a sign of a reactivated virus.`
+                ? <><ToneIcon tone="warning" /> {`Spreading: ${Math.round((growth - 1) * 100)} % larger. A spreading rash, especially with fever, should go to the Crew Medical Officer. In space it can be a sign of a reactivated virus.`}</>
                 : growth > 1
-                  ? `▲ Slightly larger (${Math.round((growth - 1) * 100)} %). Keep photographing daily.`
-                  : '● Same size or smaller. Keep it clean and keep checking.'}
+                  ? <><ToneIcon tone="caution" /> Slightly larger ({Math.round((growth - 1) * 100)} %). Keep photographing daily.</>
+                  : <><ToneIcon tone="nominal" /> Same size or smaller. Keep it clean and keep checking.</>}
             </p>
           )}
           {pairKey && (
@@ -305,12 +306,12 @@ export function PhotoLog({ crewId }: { crewId: string }) {
               {aiBusy && <p className="animate-pulse text-sm text-ink-dim">HALO is comparing the photos…</p>}
               {ai && !aiBusy && (
                 <>
-                  <div className={`self-start rounded-full border px-3 py-1 text-sm font-semibold ${LEVEL_UI[ai.level].cls}`}>{LEVEL_UI[ai.level].label}</div>
+                  <div className={`self-start rounded-full border px-3 py-1 text-sm font-semibold ${LEVEL_UI[ai.level].cls}`}><ToneIcon tone={ai.level === 'same' ? 'nominal' : ai.level === 'watch' ? 'caution' : 'warning'} /> {LEVEL_UI[ai.level].label}</div>
                   <p className="whitespace-pre-line text-sm leading-snug">{ai.text}</p>
                   <p className="font-mono text-[10px] text-ink-dim">Checked {relTime(ai.at)}</p>
                 </>
               )}
-              {aiError && <p className="text-xs text-caution">▲ {aiError}</p>}
+              {aiError && <p className="text-xs text-caution"><ToneIcon tone="caution" /> {aiError}</p>}
               <p className="text-[11px] text-ink-dim">Prototype: AI change tracking (Claude), not a diagnosis. Photos are sent to the AI only when you press the button. A flight version would run a trained model on board.</p>
             </div>
           )}
@@ -323,7 +324,7 @@ export function PhotoLog({ crewId }: { crewId: string }) {
                   className="absolute right-0.5 top-0.5 grid h-5 w-5 place-items-center rounded-full bg-black/70 text-[10px] text-ink-dim hover:text-warning"
                   aria-label="Delete photo"
                 >
-                  ✕
+                  <X aria-hidden className="h-4 w-4" />
                 </button>
               </div>
             ))}

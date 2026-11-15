@@ -1,3 +1,5 @@
+import { inl, ToneIcon } from '../../components/ToneIcon'
+import { Camera, CircleCheck, Mic } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { AskHalo, type AppTab } from '../../components/AskHalo'
 import { METRICS } from '../../content/metrics'
@@ -56,7 +58,7 @@ export function CheckInScreen({ env, onOpenSystem, onEmergency, onOpenTab, onFin
         currentMeasurement: done ? null : { name: curDef.label, unit: curDef.unit, appInstructions: cur.howTo, step: `${i + 1} of ${STEPS.length}` },
         enteredSoFar: Object.fromEntries(Object.entries(values).map(([k, v]) => [METRICS[k as MetricId].label, `${v} ${METRICS[k as MetricId].unit}`.trim()])),
       }}
-      subtitle="Help with this measurement — how to take it and what it means"
+      subtitle="Help with this measurement: how to take it and what it means"
       starters={[`How do I measure ${curDef.label.toLowerCase()} in ${e.gravity === '0 g' ? 'zero g' : 'this gravity'}?`, `Why does ${curDef.label.toLowerCase()} matter in space?`, 'What if my value looks unusual?']}
       onOpenSystem={onOpenSystem}
       onEmergency={onEmergency}
@@ -92,7 +94,7 @@ export function CheckInScreen({ env, onOpenSystem, onEmergency, onOpenTab, onFin
     if (n === null || n < st.min || n > st.max) {
       tries.current++
       const msg = n === null ? 'I didn’t catch a number' : `${n} is outside ${st.min} to ${st.max}`
-      setVoiceMsg(`▲ ${msg}. Say it again, or say “skip”.`)
+      setVoiceMsg(`${msg}. Say it again, or say “skip”.`)
       if (handsFree && tries.current < 3) speak(`${msg}. Please say it again.`, listen)
       return
     }
@@ -100,7 +102,7 @@ export function CheckInScreen({ env, onOpenSystem, onEmergency, onOpenTab, onFin
     const rounded = Number(v.toFixed(2))
     setValues((prev) => ({ ...prev, [st.metric]: rounded }))
     setFromCamera((prev) => new Set([...prev].filter((m) => m !== st.metric)))
-    setVoiceMsg(`● Heard “${text}” → ${rounded}`)
+    setVoiceMsg(`Heard “${text}”: ${rounded}`)
     if (handsFree) speak(`${rounded}. Saved.`, () => setI((x) => (x === i ? x + 1 : x)))
   }
 
@@ -122,7 +124,7 @@ export function CheckInScreen({ env, onOpenSystem, onEmergency, onOpenTab, onFin
   if (done) {
     return shell(
       <div className="mx-auto max-w-xl p-6">
-        <h2 className="mb-1 text-2xl font-bold">Check-in complete ✓</h2>
+        <h2 className="mb-1 text-2xl font-bold">Check-in complete <CircleCheck className={`text-nominal ${inl}`} /></h2>
         <p className="mb-4 font-mono text-xs uppercase tracking-wider text-nominal">+30 XP · streak kept alive</p>
         <ul className="rounded-xl bg-space-900 p-4">
           {Object.entries(values).map(([k, v]) => (
@@ -167,7 +169,7 @@ export function CheckInScreen({ env, onOpenSystem, onEmergency, onOpenTab, onFin
             aria-pressed={handsFree}
             title="HALO reads each question aloud and listens for your answer"
           >
-            🎙 Hands-free {handsFree ? 'on' : 'off'}
+            <Mic className={inl} /> Hands-free {handsFree ? 'on' : 'off'}
           </button>
         )}
       </div>
@@ -179,10 +181,10 @@ export function CheckInScreen({ env, onOpenSystem, onEmergency, onOpenTab, onFin
             className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border text-lg ${listening ? 'animate-pulse border-warning bg-warning/20 text-warning' : 'border-white/15 text-ink-dim hover:text-ink'}`}
             aria-label={listening ? 'Stop listening' : 'Answer by voice'}
           >
-            🎙
+            <Mic aria-hidden className="h-5 w-5" />
           </button>
           <span className="flex-1 text-ink-dim">
-            {listening ? <>Listening… <span className="text-ink">{heard}</span></> : voiceError ? <span className="text-caution">▲ {voiceError}</span> : voiceMsg || 'Tap the mic and say the number — or “skip”, “back”, “repeat”.'}
+            {listening ? <>Listening… <span className="text-ink">{heard}</span></> : voiceError ? <span className="text-caution"><ToneIcon tone="caution" /> {voiceError}</span> : voiceMsg || 'Tap the mic and say the number, or “skip”, “back”, “repeat”.'}
           </span>
         </div>
       )}
@@ -191,7 +193,7 @@ export function CheckInScreen({ env, onOpenSystem, onEmergency, onOpenTab, onFin
           onClick={() => setCamera(true)}
           className="flex min-h-12 items-center justify-center gap-2 rounded-lg border border-warning/40 bg-warning/10 font-semibold text-warning hover:bg-warning/15"
         >
-          <span aria-hidden>◉</span> No monitor? Measure with the camera
+          <Camera aria-hidden className={inl} /> No monitor? Measure with the camera
         </button>
       )}
       {s.metric === 'heartRate' && camera && (

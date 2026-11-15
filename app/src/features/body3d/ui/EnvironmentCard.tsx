@@ -1,3 +1,5 @@
+import { inl } from '../../../components/ToneIcon'
+import { Circle, Flag } from 'lucide-react'
 import { SourceBadge } from '../../../components/SourceBadge'
 import { SYSTEMS } from '../../../content/systems'
 import { ENVIRONMENTS, formatDelay, type EnvironmentId } from '../../../state/mission'
@@ -50,7 +52,7 @@ export function EnvironmentCard({ env, onSystem }: { env: EnvironmentId; onSyste
               onClick={() => onSystem(id)}
               className="min-h-10 rounded-lg border border-accent/40 bg-accent/10 px-3 text-xs font-semibold text-accent hover:bg-accent/20"
             >
-              ◈ {SYSTEMS[id].label}
+              <Flag className={inl} /> {SYSTEMS[id].label}
             </button>
           ))}
         </div>
@@ -61,7 +63,7 @@ export function EnvironmentCard({ env, onSystem }: { env: EnvironmentId; onSyste
         <ul className="mt-1 space-y-1 text-[13px]">
           {e.checklist.map((c) => (
             <li key={c} className="flex gap-2">
-              <span className="text-ink-dim">○</span>
+              <Circle aria-hidden className="mt-1.5 h-2 w-2 shrink-0 text-ink-dim" />
               {c}
             </li>
           ))}

@@ -41,7 +41,7 @@ export interface HoloOpts {
   rim?: number
   power?: number
   boost?: number
-  /** Push vertices out along their normals (meters) — turns the muscle mesh into a skin shell. */
+  /** Push vertices out along their normals (meters), turns the muscle mesh into a skin shell. */
   inflate?: number
 }
 

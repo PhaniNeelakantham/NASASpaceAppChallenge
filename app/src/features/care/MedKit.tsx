@@ -1,3 +1,4 @@
+import { ToneIcon } from '../../components/ToneIcon'
 import { useState } from 'react'
 import { CREW } from '../../data/syntheticCrew'
 import { DAY_MS, relTime, uid, useCrewStore } from '../../state/crewStore'
@@ -63,14 +64,14 @@ function seedKit(): Kit {
 
 const DEEP_SPACE: EnvironmentId[] = ['transit', 'marsBase']
 
-function status(m: Med, env: EnvironmentId, now: number): { word: string; shape: string; cls: string } {
+function status(m: Med, env: EnvironmentId, now: number): { word: string; shape: React.ReactNode; cls: string } {
   // On deep-space missions, radiation-sensitive drugs are treated as expiring ~25 % sooner.
   const left = m.expires - now
   const eff = m.radSensitive && DEEP_SPACE.includes(env) && left > 0 ? left * 0.75 : left
-  if (eff <= 0) return { word: 'Expired', shape: '◆', cls: 'text-warning' }
-  if (m.count <= m.lowAt) return { word: 'Low stock', shape: '▲', cls: 'text-caution' }
-  if (eff < 60 * DAY_MS) return { word: `Expires in ${Math.ceil(eff / DAY_MS)} d`, shape: '▲', cls: 'text-caution' }
-  return { word: 'OK', shape: '●', cls: 'text-nominal' }
+  if (eff <= 0) return { word: 'Expired', shape: <ToneIcon tone="warning" />, cls: 'text-warning' }
+  if (m.count <= m.lowAt) return { word: 'Low stock', shape: <ToneIcon tone="caution" />, cls: 'text-caution' }
+  if (eff < 60 * DAY_MS) return { word: `Expires in ${Math.ceil(eff / DAY_MS)} d`, shape: <ToneIcon tone="caution" />, cls: 'text-caution' }
+  return { word: 'OK', shape: <ToneIcon tone="nominal" />, cls: 'text-nominal' }
 }
 
 export function MedKit({ crewId, env }: { crewId: string; env: EnvironmentId }) {
@@ -112,20 +113,20 @@ export function MedKit({ crewId, env }: { crewId: string; env: EnvironmentId }) 
       <div className="flex flex-col gap-3">
         {confirm && (
           <div className="glass border-caution/50 p-4">
-            <p className="text-sm text-caution">▲ {confirm.reason}</p>
+            <p className="text-sm text-caution"><ToneIcon tone="caution" /> {confirm.reason}</p>
             <div className="mt-3 flex gap-2">
               <button onClick={() => setConfirm(null)} className="min-h-11 flex-1 rounded-lg bg-space-800 text-sm">
                 Don’t log
               </button>
               {confirm.med.count > 0 && (
                 <button onClick={() => log(confirm.med)} className="min-h-11 flex-1 rounded-lg bg-caution text-sm font-semibold text-space-950">
-                  {confirm.med.consult ? 'Approved — log dose' : 'Log anyway'}
+                  {confirm.med.consult ? 'Approved, log dose' : 'Log anyway'}
                 </button>
               )}
             </div>
           </div>
         )}
-        {logged && !confirm && <p className="text-sm text-nominal">● Logged one dose of {logged}.</p>}
+        {logged && !confirm && <p className="text-sm text-nominal"><ToneIcon tone="nominal" /> Logged one dose of {logged}.</p>}
         <ul className="flex flex-col gap-2">
           {kit.meds.map((m) => {
             const st = status(m, env, now)

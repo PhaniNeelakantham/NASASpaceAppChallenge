@@ -43,7 +43,7 @@ export function CameraRig({ focus, shiftX = 0 }: { focus: Focus | null; shiftX?:
     if (!c) return
     const f = flight.current
     if (f) {
-      // Critically-damped glide toward the zone — no overshoot, no jitter.
+      // Critically-damped glide toward the zone, no overshoot, no jitter.
       const k = 1 - Math.exp(-3.2 * dt)
       c.target.lerp(f.target, k)
       camera.position.lerp(f.pos, k)

@@ -1,3 +1,5 @@
+import { inl } from '../../../components/ToneIcon'
+import { Flag } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { Billboard, Html, Line } from '@react-three/drei'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
@@ -65,7 +67,7 @@ export function HealthNode({ cfg, view, visible, selected, expanded, dimmed, pri
     const zoom = THREE.MathUtils.clamp(camera.position.distanceTo(tmp) / DESIGN_DIST, 0.3, 1)
     root.current.scale.setScalar(Math.max(f, 0.001) * (1 + grow.current * 0.35) * zoom)
 
-    // Attention pulse — only for Caution/Warning (faster for Warning). Nominal nodes stay still.
+    // Attention pulse, only for Caution/Warning (faster for Warning). Nominal nodes stay still.
     const speed = view.status === 'warning' ? 1.4 : 0.8
     const t = clock.elapsedTime * speed
     for (const [mesh, offset, reach] of [
@@ -174,7 +176,7 @@ export function HealthNode({ cfg, view, visible, selected, expanded, dimmed, pri
         </Billboard>
       </group>
 
-      {/* label: only for issues, environment priorities, hover/selection — or when the user asks for all */}
+      {/* label: only for issues, environment priorities, hover/selection, or when the user asks for all */}
       {visible && (alert || priority || active || showAllLabels) && (
         <Html zIndexRange={[30, 26]} style={{ pointerEvents: 'none' }}>
           <button
@@ -188,7 +190,7 @@ export function HealthNode({ cfg, view, visible, selected, expanded, dimmed, pri
             onPointerEnter={() => setHover(true)}
             onPointerLeave={() => setHover(false)}
           >
-            {priority && <span className="text-accent">◈</span>}
+            {priority && <Flag aria-hidden className={`text-accent ${inl}`} />}
             <span>{cfg.tag}</span>
             <span className="node-count">{view.indicators.length}</span>
           </button>

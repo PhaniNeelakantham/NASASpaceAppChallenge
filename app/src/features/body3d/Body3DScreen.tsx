@@ -1,3 +1,5 @@
+import { inl } from '../../components/ToneIcon'
+import { ArrowRight, Crosshair, Flag, Layers, Radar } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { StatusBadge } from '../../components/StatusBadge'
@@ -72,7 +74,7 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
 
   const [layersOpen, setLayersOpen] = useState(false)
   const [showAllLabels, setShowAllLabels] = useState(false)
-  // Which systems the astronaut has reviewed today (advances the guide) — saved per crew member per day.
+  // Which systems the astronaut has reviewed today (advances the guide), saved per crew member per day.
   const [reviewedList, setReviewedList] = usePersistentState<SystemId[]>(`halo.guide.reviewed.${crewId}.${today()}`, [])
   const reviewed = useMemo(() => new Set(reviewedList), [reviewedList])
   // The tutorial is shown once per crew member (one shared tablet, several astronauts).
@@ -218,10 +220,10 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
   const hint = (() => {
     if (painMode) return 'Tap the spot on the body that hurts. Drag to turn the body if it is on the back.'
     if (usExam) return 'Follow the steps on the right. The blue probe shows where to place it.'
-    if (expanded) return 'Work through the numbered procedure. Escalate only if its conditions apply. Press ✕ or Esc to go back.'
+    if (expanded) return 'Work through the numbered procedure. Escalate only if its conditions apply. Press Close or Esc to go back.'
     if (selected) return 'Read the summary, then press “Full details” for the procedure. Tap empty space to go back.'
     const next = alerts.find((a) => !reviewed.has(a.id))
-    if (next) return `Next: tap the ${next.status === 'warning' ? 'red' : 'amber'} point on ${next.label.toLowerCase()} — or press “Show me” on the left.`
+    if (next) return `Next: tap the ${next.status === 'warning' ? 'red' : 'amber'} point on ${next.label.toLowerCase()}, or press “Show me” on the left.`
     return 'Nothing urgent. Tap any point to see details, or drag to look around.'
   })()
 
@@ -297,7 +299,7 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
                 className={`glass flex h-12 items-center gap-2 px-4 font-mono text-xs uppercase tracking-wider ${layersOpen || depth > 0 ? 'text-accent' : 'text-ink-dim hover:text-ink'}`}
                 aria-expanded={layersOpen}
               >
-                ◧ Layers & view {depth > 0 && '· peeled'}
+                <Layers className={inl} /> Layers & view {depth > 0 && '· peeled'}
               </button>
             </div>
             <div className="flex gap-2">
@@ -311,7 +313,7 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
                 className={`glass flex h-12 items-center gap-2 px-4 font-mono text-xs uppercase tracking-wider ${painMode ? 'border-warning/60 text-warning' : 'text-ink-dim hover:text-ink'}`}
                 aria-pressed={painMode}
               >
-                ✚ {painMode ? 'Tap the body… (cancel)' : `Report pain${spots.length ? ` · ${spots.length}` : ''}`}
+                <Crosshair className={inl} /> {painMode ? 'Tap the body… (cancel)' : `Report pain${spots.length ? ` · ${spots.length}` : ''}`}
               </button>
               <button
                 onClick={() => {
@@ -324,7 +326,7 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
                 className={`glass flex h-12 items-center gap-2 px-4 font-mono text-xs uppercase tracking-wider ${usOpen ? 'text-accent' : 'text-ink-dim hover:text-ink'}`}
                 aria-pressed={usOpen}
               >
-                ◎ Ultrasound
+                <Radar className={inl} /> Ultrasound
               </button>
             </div>
             <AnimatePresence mode="wait">
@@ -400,14 +402,14 @@ export function Body3DScreen({ crewId, readings, findings, statuses, env, onChec
           <ZonePills zone={zone} onZone={flyToZone} />
         </div>
         <p className="glass rounded-xl px-4 py-2 text-center text-sm" role="status" aria-live="polite">
-          <span className="mr-2 text-accent">→</span>
+          <ArrowRight aria-hidden className={`mr-2 text-accent ${inl}`} />
           {hint}
         </p>
         <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-wider text-ink-dim">
           <StatusBadge status="nominal" />
           <StatusBadge status="caution" />
           <StatusBadge status="warning" />
-          <span className="text-accent">◈ Priority here</span>
+          <span className="text-accent"><Flag className={inl} /> Priority here</span>
           <span className="hidden lg:inline">· Left-drag to rotate · Right-drag to move · Scroll to zoom · Simulated crew data</span>
         </div>
       </div>

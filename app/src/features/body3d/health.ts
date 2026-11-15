@@ -53,17 +53,17 @@ function trendSentence(id: SystemId, readings: Reading[], primary: Finding | und
     }
     const streak = primary.streak > 1 ? ` for ${primary.streak} days` : ' today'
     const tail = dir === 'steady' ? 'holding there.' : `still ${dir}.`
-    return `${deviationText(primary, pct)} your normal${streak} — ${tail}`
+    return `${deviationText(primary, pct)} your normal${streak}, ${tail}`
   }
   if (id === 'skin') {
     return symptoms.includes('rash')
-      ? 'Rash reported today — photograph it and watch for spreading.'
+      ? 'Rash reported today: photograph it and watch for spreading.'
       : 'No rash, bruising or pressure marks reported.'
   }
   if (id === 'eyes') {
     return symptoms.includes('headache')
-      ? 'Headache logged — run the vision grid test today.'
-      : 'No vision test logged today — the grid test takes 1 minute.'
+      ? 'Headache logged: run the vision grid test today.'
+      : 'No vision test logged today. The grid test takes 1 minute.'
   }
   return 'No measurement logged yet today.'
 }

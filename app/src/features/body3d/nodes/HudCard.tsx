@@ -1,3 +1,5 @@
+import { inl } from '../../../components/ToneIcon'
+import { ArrowDown, ArrowUp, Flag, Minus, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { SourceBadge } from '../../../components/SourceBadge'
 import { StatusBadge } from '../../../components/StatusBadge'
@@ -14,11 +16,11 @@ interface Props {
   onClose: () => void
 }
 
-/** First tap: compact HUD — status, primary metric, one-sentence trend. No data walls. */
+/** First tap: compact HUD, status, primary metric, one-sentence trend. No data walls. */
 export function HudCard({ view, insight, envKind, priority, onExpand, onClose }: Props) {
   const p = view.primary
   const def = p ? METRICS[p.metric] : null
-  const arrow = p ? (p.z > 0.5 ? '▲' : p.z < -0.5 ? '▼' : '■') : ''
+  const Arrow = p ? (p.z > 0.5 ? ArrowUp : p.z < -0.5 ? ArrowDown : Minus) : null
   const color = STATUS_HEX[view.status]
   return (
     <motion.div
@@ -46,7 +48,7 @@ export function HudCard({ view, insight, envKind, priority, onExpand, onClose }:
           </span>
           <span className="text-sm text-ink-dim">{def.unit}</span>
           <span className="text-sm" style={{ color }}>
-            {arrow}
+            {Arrow && <Arrow aria-hidden className={inl} />}
           </span>
           <span className="ml-auto text-right text-[11px] leading-tight text-ink-dim">
             {def.label}
@@ -66,7 +68,7 @@ export function HudCard({ view, insight, envKind, priority, onExpand, onClose }:
       {insight && (
         <div className="mt-2 rounded-lg border border-accent/25 bg-accent/[0.06] px-2.5 py-2">
           <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-accent">
-            {priority ? '◈ Priority · ' : ''}
+            {priority ? <><Flag className={inl} /> Priority · </> : ''}
             {envKind}
           </div>
           <p className="text-[12px] leading-snug">{insight}</p>
@@ -77,8 +79,8 @@ export function HudCard({ view, insight, envKind, priority, onExpand, onClose }:
         <button onClick={onExpand} className="hud-btn flex-[2] font-bold" style={{ background: color, color: '#04070f' }}>
           Full details ›
         </button>
-        <button onClick={onClose} className="hud-btn flex-1 border border-white/15 text-ink-dim" aria-label="Close">
-          ✕
+        <button onClick={onClose} className="hud-btn grid flex-1 place-items-center border border-white/15 text-ink-dim" aria-label="Close">
+          <X aria-hidden className="h-4 w-4" />
         </button>
       </div>
       <div className="mt-2 text-center font-mono text-[10px] text-ink-dim">tap the node again to expand</div>

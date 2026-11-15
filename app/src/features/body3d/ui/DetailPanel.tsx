@@ -1,3 +1,5 @@
+import { inl } from '../../../components/ToneIcon'
+import { Flag, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Area, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { StatusBadge } from '../../../components/StatusBadge'
@@ -75,7 +77,7 @@ export function DetailPanel({ view, readings, env, onClose }: Props) {
           </div>
         </div>
         <button onClick={onClose} className="grid h-12 w-12 place-items-center rounded-xl border border-white/10 text-lg hover:bg-white/5" aria-label="Close details">
-          ✕
+          <X aria-hidden className="h-4 w-4" />
         </button>
       </header>
 
@@ -84,7 +86,7 @@ export function DetailPanel({ view, readings, env, onClose }: Props) {
 
         <section className="rounded-xl border border-accent/25 bg-accent/[0.05] p-3">
           <h3 className="section-h !text-accent">
-            {e.priorities.includes(view.id) ? '◈ Priority risk · ' : ''}In this environment · {e.kind}
+            {e.priorities.includes(view.id) ? <><Flag className={inl} /> Priority risk · </> : ''}In this environment · {e.kind}
           </h3>
           <p className="text-sm">{e.insights[view.id] ?? 'No environment-specific change for this system.'}</p>
           <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] leading-snug text-ink-dim">
@@ -157,7 +159,7 @@ export function DetailPanel({ view, readings, env, onClose }: Props) {
         </section>
 
         <section>
-          <h3 className="section-h">Procedure — do now</h3>
+          <h3 className="section-h">Procedure: do now</h3>
           <ol className="space-y-2">
             {s.actions.map((a, i) => (
               <li key={a} className="flex gap-3 rounded-lg bg-white/[0.03] p-3 text-sm">

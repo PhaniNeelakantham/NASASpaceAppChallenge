@@ -1,3 +1,5 @@
+import { inl } from '../../../components/ToneIcon'
+import { Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useComms } from '../../../state/comms'
@@ -43,7 +45,7 @@ function headline(alerts: SystemView[]): { text: string; tone: string } {
 }
 
 /**
- * "What do I do now?" — one plain-language headline and a short numbered plan.
+ * "What do I do now?", one plain-language headline and a short numbered plan.
  * Only the current step is expanded; finished steps collapse to a check mark.
  */
 export function GuidePanel({ env, alerts, priorities, reviewed, onShow, onOpenProcedure, onCheckIn }: Props) {
@@ -58,7 +60,7 @@ export function GuidePanel({ env, alerts, priorities, reviewed, onShow, onOpenPr
   const base = headline(alerts)
   const h =
     radiation?.level === 'warning' && shelterAck !== radKey
-      ? { text: 'Radiation alert — get to shelter first.', tone: 'text-warning' }
+      ? { text: 'Radiation alert: get to shelter first.', tone: 'text-warning' }
       : base
 
   const steps: Step[] = [
@@ -70,7 +72,7 @@ export function GuidePanel({ env, alerts, priorities, reviewed, onShow, onOpenPr
             detail: `${radiation.action} (Source: NASA DONKI.)`,
             done: shelterAck === radKey,
             color: STATUS_HEX[radiation.level],
-            action: { label: 'Done — I’m sheltered', run: () => setShelterAck(radKey) },
+            action: { label: 'Done, I’m sheltered', run: () => setShelterAck(radKey) },
           },
         ]
       : []),
@@ -83,7 +85,7 @@ export function GuidePanel({ env, alerts, priorities, reviewed, onShow, onOpenPr
     },
     ...alerts.map((a) => ({
       key: a.id,
-      title: `Look at: ${a.label}${priorities.has(a.id) ? ' ◈' : ''}`,
+      title: `Look at: ${a.label}${priorities.has(a.id) ? ' (priority)' : ''}`,
       detail: a.trend,
       done: reviewed.has(a.id),
       color: STATUS_HEX[a.status],
@@ -123,7 +125,7 @@ export function GuidePanel({ env, alerts, priorities, reviewed, onShow, onOpenPr
                 aria-pressed={!!routineDone[k]}
               >
                 <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-md border ${routineDone[k] ? 'border-nominal bg-nominal/20 text-nominal' : 'border-white/20'}`}>
-                  {routineDone[k] ? '✓' : ''}
+                  {routineDone[k] ? <Check aria-hidden className="h-3.5 w-3.5" /> : ''}
                 </span>
                 <span className={routineDone[k] ? 'text-ink-dim line-through' : ''}>{c}</span>
               </button>
@@ -163,7 +165,7 @@ export function GuidePanel({ env, alerts, priorities, reviewed, onShow, onOpenPr
                       s.done ? 'bg-nominal/20 text-nominal' : isCurrent ? 'bg-accent text-space-950' : 'border border-white/15 text-ink-dim'
                     }`}
                   >
-                    {s.done ? '✓' : i + 1}
+                    {s.done ? <Check aria-hidden className="h-3.5 w-3.5" /> : i + 1}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className={`text-sm font-semibold leading-snug ${s.done ? 'text-ink-dim' : isCurrent ? '' : 'text-ink-dim'}`}>
@@ -208,7 +210,7 @@ export function GuidePanel({ env, alerts, priorities, reviewed, onShow, onOpenPr
               {e.gravity} · Earth {e.groundAvailable === 'delayed' ? `${formatDelay(e.oneWayDelaySec)} away` : 'live'} · ~{e.doseMsvPerDay} mSv/day
             </div>
           </div>
-          <span className="shrink-0 font-mono text-[10px] uppercase tracking-wider text-ink-dim">{envOpen ? 'Hide ▴' : 'What’s different here ▾'}</span>
+          <span className="shrink-0 font-mono text-[10px] uppercase tracking-wider text-ink-dim">{envOpen ? <>Hide <ChevronUp className={inl} /></> : <>What’s different here <ChevronDown className={inl} /></>}</span>
         </button>
       </section>
       <AnimatePresence initial={false}>

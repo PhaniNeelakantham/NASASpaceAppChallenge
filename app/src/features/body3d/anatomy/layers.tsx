@@ -39,7 +39,7 @@ const RASH_SPOTS: THREE.Vector3[] = (() => {
 })()
 
 /* ------------------------------------------------------------------ */
-/* Layer 1 — Skin / surface: the muscle model inflated into a shell     */
+/* Layer 1: Skin / surface: the muscle model inflated into a shell     */
 /* ------------------------------------------------------------------ */
 
 export function SkinLayer({ visible, statuses, selected, detail }: LayerProps) {
@@ -73,7 +73,7 @@ export function SkinLayer({ visible, statuses, selected, detail }: LayerProps) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Layer 2 — Musculoskeletal: downloaded muscle + skeleton models        */
+/* Layer 2: Musculoskeletal: downloaded muscle + skeleton models        */
 /* ------------------------------------------------------------------ */
 
 export function MusculoLayer({ visible, statuses, selected, detail }: LayerProps) {
@@ -111,7 +111,7 @@ export function MusculoLayer({ visible, statuses, selected, detail }: LayerProps
 }
 
 /* ------------------------------------------------------------------ */
-/* Layer 3 — Cardiovascular / fluids (hologram, fitted to the model)    */
+/* Layer 3: Cardiovascular / fluids (hologram, fitted to the model)    */
 /* ------------------------------------------------------------------ */
 
 const HEART = v(0.03, 1.3, 0.03)
@@ -185,7 +185,7 @@ export function CardioLayer({ visible, statuses, selected }: LayerProps) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Layer 4 — Organs & nervous system (hologram, fitted to the model)    */
+/* Layer 4: Organs & nervous system (hologram, fitted to the model)    */
 /* ------------------------------------------------------------------ */
 
 export function OrgansLayer({ visible, statuses, selected }: LayerProps) {

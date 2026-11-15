@@ -3,7 +3,7 @@ import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { noRaycast } from './geometry'
 
-// CC0 models from grab3d.com, meshopt-compressed (decoder ships with three.js — works offline).
+// CC0 models from grab3d.com, meshopt-compressed (decoder ships with three.js, works offline).
 const BASE = import.meta.env.BASE_URL
 
 /** Model detail setting: low = lighter meshes, no glow; medium = full meshes; high = full meshes + glow + sharper render. */

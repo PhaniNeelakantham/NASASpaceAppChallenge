@@ -1,3 +1,4 @@
+import { ToneIcon } from '../../components/ToneIcon'
 import { useState } from 'react'
 import { DAY_MS, relTime, useCrewStore } from '../../state/crewStore'
 import { useRoutine } from '../../state/routine'
@@ -57,14 +58,14 @@ export function VisionTest({ crewId }: { crewId: string }) {
         <div className="section-h !mb-0">Result</div>
         {nl + nr > 0 ? (
           <p className="rounded-lg bg-warning/10 p-3 text-sm text-warning">
-            ◆ New distortion since last week: {nl > 0 && `${nl} square${nl > 1 ? 's' : ''} in the left eye`}
+            <ToneIcon tone="warning" /> New distortion since last week: {nl > 0 && `${nl} square${nl > 1 ? 's' : ''} in the left eye`}
             {nl > 0 && nr > 0 && ', '}
             {nr > 0 && `${nr} square${nr > 1 ? 's' : ''} in the right eye`}. Report this to the flight surgeon and schedule an eye ultrasound (Body tab → Ultrasound → Eye).
           </p>
         ) : any > 0 ? (
-          <p className="rounded-lg bg-caution/10 p-3 text-sm text-caution">▲ Same distortion as before, no new areas. Keep testing weekly.</p>
+          <p className="rounded-lg bg-caution/10 p-3 text-sm text-caution"><ToneIcon tone="caution" /> Same distortion as before, no new areas. Keep testing weekly.</p>
         ) : (
-          <p className="rounded-lg bg-nominal/10 p-3 text-sm text-nominal">● No distortion in either eye. See you next week.</p>
+          <p className="rounded-lg bg-nominal/10 p-3 text-sm text-nominal"><ToneIcon tone="nominal" /> No distortion in either eye. See you next week.</p>
         )}
         <div className="grid grid-cols-2 gap-3">
           {(['left', 'right'] as const).map((w) => (
@@ -141,7 +142,7 @@ export function VisionTest({ crewId }: { crewId: string }) {
             <p className="mt-2 font-mono text-xs text-ink-dim">
               Last test {relTime(prev.at)}: left {prev.left.length} · right {prev.right.length} marked
               {(newIn({ at: 0, left: [...marks.left], right: [...marks.right] }, 'left') > 0 || newIn({ at: 0, left: [...marks.left], right: [...marks.right] }, 'right') > 0) && (
-                <span className="text-caution"> · ▲ new squares marked</span>
+                <span className="text-caution"> · <ToneIcon tone="caution" /> new squares marked</span>
               )}
             </p>
           )}

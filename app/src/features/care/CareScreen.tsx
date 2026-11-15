@@ -1,3 +1,4 @@
+import { BriefcaseMedical, Camera, Grid3x3, NotebookPen, PlaneLanding, Users, type LucideIcon } from 'lucide-react'
 import type { EnvironmentId } from '../../state/mission'
 import { BuddyCheck } from './BuddyCheck'
 import { Journal } from './Journal'
@@ -8,13 +9,13 @@ import { VisionTest } from './VisionTest'
 
 export type CareTool = 'photos' | 'vision' | 'buddy' | 'journal' | 'medkit' | 'landing'
 
-const TOOLS: { id: CareTool; label: string; glyph: string; blurb: string; hazard: string }[] = [
-  { id: 'photos', label: 'Skin photos', glyph: '◉', blurb: 'Photograph a rash or bruise daily and compare.', hazard: 'Closed environment' },
-  { id: 'vision', label: 'Vision test', glyph: '▦', blurb: 'Amsler grid: catch eye changes early.', hazard: 'Gravity' },
-  { id: 'buddy', label: 'Buddy check', glyph: '◐', blurb: 'Rate how your crewmates seem — and see how they see you.', hazard: 'Isolation' },
-  { id: 'journal', label: 'Journal & Earth', glyph: '✎', blurb: 'Private journal and your next call home.', hazard: 'Distance' },
-  { id: 'medkit', label: 'Med kit', glyph: '✚', blurb: 'Stock, expiry and dose log for the onboard kit.', hazard: 'Radiation' },
-  { id: 'landing', label: 'Landing readiness', glyph: '⇣', blurb: 'Lying-to-standing test before landing.', hazard: 'Gravity' },
+const TOOLS: { id: CareTool; label: string; icon: LucideIcon; blurb: string; hazard: string }[] = [
+  { id: 'photos', label: 'Skin photos', icon: Camera, blurb: 'Photograph a rash or bruise daily and compare.', hazard: 'Closed environment' },
+  { id: 'vision', label: 'Vision test', icon: Grid3x3, blurb: 'Amsler grid: catch eye changes early.', hazard: 'Gravity' },
+  { id: 'buddy', label: 'Buddy check', icon: Users, blurb: 'Rate how your crewmates seem, and see how they see you.', hazard: 'Isolation' },
+  { id: 'journal', label: 'Journal & Earth', icon: NotebookPen, blurb: 'Private journal and your next call home.', hazard: 'Distance' },
+  { id: 'medkit', label: 'Med kit', icon: BriefcaseMedical, blurb: 'Stock, expiry and dose log for the onboard kit.', hazard: 'Radiation' },
+  { id: 'landing', label: 'Landing readiness', icon: PlaneLanding, blurb: 'Lying-to-standing test before landing.', hazard: 'Gravity' },
 ]
 
 export function CareScreen({ crewId, env, tool, onTool }: { crewId: string; env: EnvironmentId; tool: CareTool; onTool: (t: CareTool) => void }) {
@@ -29,7 +30,7 @@ export function CareScreen({ crewId, env, tool, onTool }: { crewId: string; env:
             className={`glass flex min-h-16 flex-col items-start gap-0.5 px-3 py-2 text-left transition-colors ${tool === x.id ? 'border-accent/60 text-accent' : 'text-ink-dim hover:text-ink'}`}
             aria-current={tool === x.id ? 'page' : undefined}
           >
-            <span className="text-lg leading-none">{x.glyph}</span>
+            <x.icon aria-hidden className="h-5 w-5 shrink-0" />
             <span className="text-sm font-semibold">{x.label}</span>
           </button>
         ))}

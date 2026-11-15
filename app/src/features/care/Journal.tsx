@@ -1,3 +1,5 @@
+import { inl, ToneIcon } from '../../components/ToneIcon'
+import { Lock, Video } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { DAY_MS, relTime, uid, useCrewStore } from '../../state/crewStore'
 import { ENVIRONMENTS, formatCountdown, formatDelay, type EnvironmentId } from '../../state/mission'
@@ -32,7 +34,7 @@ function seedJournal(crewId: string): Entry[] {
     return [
       { id: 'j1', at: now - 4 * DAY_MS, mood: 7, text: 'Docking went perfectly. Proud of the team.' },
       { id: 'j2', at: now - 2 * DAY_MS, mood: 6, text: 'Couldn’t sleep again. The fans are loud.' },
-      { id: 'j3', at: now - 1 * DAY_MS, mood: 5, text: 'Tired. Snapped at the Flight Engineer over nothing — need to apologise.' },
+      { id: 'j3', at: now - 1 * DAY_MS, mood: 5, text: 'Tired. Snapped at the Flight Engineer over nothing. Need to apologise.' },
     ]
   return [{ id: 'j1', at: now - 2 * DAY_MS, mood: 7, text: 'Saw the sunrise over the Pacific from the cupola.' }]
 }
@@ -93,7 +95,7 @@ export function Journal({ crewId, env }: { crewId: string; env: EnvironmentId })
         <div className="glass flex flex-col gap-3 p-4">
           <div className="flex items-center justify-between">
             <span className="section-h !mb-0">Private journal</span>
-            <span className="font-mono text-[10px] text-ink-dim">🔒 Stays on this device · never sent to the ground</span>
+            <span className="font-mono text-[10px] text-ink-dim"><Lock className={inl} /> Stays on this device · never sent to the ground</span>
           </div>
           <textarea
             value={text}
@@ -116,7 +118,7 @@ export function Journal({ crewId, env }: { crewId: string; env: EnvironmentId })
         </div>
         {falling && (
           <p className="rounded-lg bg-caution/10 p-3 text-sm text-caution">
-            ▲ Your mood has dropped over your last few entries. That’s normal on a long mission, and it helps to talk: a crewmate, a private call with the flight
+            <ToneIcon tone="caution" /> Your mood has dropped over your last few entries. That’s normal on a long mission, and it helps to talk: a crewmate, a private call with the flight
             psychologist, or your family at the next Earth window.
           </p>
         )}
@@ -143,7 +145,7 @@ export function Journal({ crewId, env }: { crewId: string; env: EnvironmentId })
           </div>
           <p className="mt-1 text-sm">
             {!delayed
-              ? 'Live two-way video. Signal delay: ' + (e.oneWayDelaySec < 1 ? 'none.' : `${formatDelay(e.oneWayDelaySec)} — barely noticeable.`)
+              ? 'Live two-way video. Signal delay: ' + (e.oneWayDelaySec < 1 ? 'none.' : `${formatDelay(e.oneWayDelaySec)}, barely noticeable.`)
               : `Live calls aren’t possible: a message takes ${formatDelay(e.oneWayDelaySec)} each way. The window is when your recorded messages are sent and theirs arrive.`}
           </p>
         </div>
@@ -153,10 +155,10 @@ export function Journal({ crewId, env }: { crewId: string; env: EnvironmentId })
             <p className="text-xs text-ink-dim">Record a short video message. It goes out on the next downlink.</p>
             {sent && sent.arriveAt > now ? (
               <p className="text-sm">
-                ▲ In transit — arrives on Earth in <span className="font-mono text-caution">{longCountdown(sent.arriveAt - now)}</span>
+                <ToneIcon tone="caution" /> In transit, arrives on Earth in <span className="font-mono text-caution">{longCountdown(sent.arriveAt - now)}</span>
               </p>
             ) : sent ? (
-              <p className="text-sm text-nominal">● Delivered {relTime(sent.arriveAt, now)}. A reply can take {formatDelay(e.oneWayDelaySec * 2)} or more.</p>
+              <p className="text-sm text-nominal"><ToneIcon tone="nominal" /> Delivered {relTime(sent.arriveAt, now)}. A reply can take {formatDelay(e.oneWayDelaySec * 2)} or more.</p>
             ) : null}
             <button
               onClick={() => {
@@ -165,7 +167,7 @@ export function Journal({ crewId, env }: { crewId: string; env: EnvironmentId })
               }}
               className="min-h-11 rounded-lg bg-accent text-sm font-semibold text-space-950"
             >
-              ◉ Record & send message
+              <Video className={inl} /> Record & send message
             </button>
           </div>
         )}

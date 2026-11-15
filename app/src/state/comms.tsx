@@ -48,7 +48,7 @@ function replyFor(system: SystemId, mode: EscalationMode): { from: string; text:
   }
   return {
     from: 'Flight surgeon, Mission Control',
-    text: `Reviewed your ${s.label.toLowerCase()} data. Agree with the onboard plan — ${step}. Send a new check-in in 6 hours, sooner if it worsens.`,
+    text: `Reviewed your ${s.label.toLowerCase()} data. Agree with the onboard plan: ${step}. Send a new check-in in 6 hours, sooner if it worsens.`,
   }
 }
 

@@ -1,3 +1,4 @@
+import { ToneIcon } from '../../components/ToneIcon'
 import { useMemo, useState } from 'react'
 import { CREW } from '../../data/syntheticCrew'
 import { DAY_MS, relTime, uid, useCrewStore } from '../../state/crewStore'
@@ -26,7 +27,7 @@ interface Rating {
 
 const first = (id: string) => `the ${CREW.find((c) => c.id === id)?.name ?? id}`
 
-/** Simulated week: the crew sees the Commander (c1, sleep debt) as tired and unfocused — more than they rate themselves. */
+/** Simulated week: the crew sees the Commander (c1, sleep debt) as tired and unfocused, more than they rate themselves. */
 function seedRatings(): Rating[] {
   const now = Date.now()
   const out: Rating[] = []
@@ -101,7 +102,7 @@ export function BuddyCheck({ crewId }: { crewId: string }) {
             </button>
           ))}
         </div>
-        <p className="text-xs text-ink-dim">How has {first(target)} seemed over the last day or two? Be honest — only the Crew Medical Officer sees individual answers.</p>
+        <p className="text-xs text-ink-dim">How has {first(target)} seemed over the last day or two? Be honest. Only the Crew Medical Officer sees individual answers.</p>
         {TRAITS.map((t) => (
           <div key={t.id}>
             <div className="flex justify-between text-sm">
@@ -129,7 +130,7 @@ export function BuddyCheck({ crewId }: { crewId: string }) {
             Send check on {first(target)}
           </button>
         </div>
-        {sent && <p className="text-xs text-nominal">● Saved your check on {sent}. Thanks for looking out for the crew.</p>}
+        {sent && <p className="text-xs text-nominal"><ToneIcon tone="nominal" /> Saved your check on {sent}. Thanks for looking out for the crew.</p>}
       </div>
 
       <div className="flex flex-col gap-4">
@@ -156,11 +157,11 @@ export function BuddyCheck({ crewId }: { crewId: string }) {
           <p className="font-mono text-[10px] text-ink-dim">Bar = crew average · line = your own rating · {fromCrew.length} checks from crewmates</p>
           {gaps.length > 0 ? (
             <p className="rounded-lg bg-caution/10 p-3 text-sm text-caution">
-              ▲ Your crew rates your {gaps.map((g) => g.t.label.toLowerCase()).join(' and ')} lower than you do. That gap is common with sleep debt and stress — people
+              <ToneIcon tone="caution" /> Your crew rates your {gaps.map((g) => g.t.label.toLowerCase()).join(' and ')} lower than you do. That gap is common with sleep debt and stress; people
               notice before we do. Check your sleep, and consider a private chat with the Crew Medical Officer.
             </p>
           ) : (
-            <p className="rounded-lg bg-nominal/10 p-3 text-sm text-nominal">● The crew’s view matches yours.</p>
+            <p className="rounded-lg bg-nominal/10 p-3 text-sm text-nominal"><ToneIcon tone="nominal" /> The crew’s view matches yours.</p>
           )}
         </div>
         <div className="glass p-4">
@@ -169,7 +170,7 @@ export function BuddyCheck({ crewId }: { crewId: string }) {
             <ul className="flex flex-col gap-1 text-sm">
               {concerns.map(({ c, score }) => (
                 <li key={c.id}>
-                  ▲ <b>{c.name}</b> seems lower this week ({score!.toFixed(1)}/5). A meal together or a check-in chat can help.
+                  <ToneIcon tone="caution" /> <b>{c.name}</b> seems lower this week ({score!.toFixed(1)}/5). A meal together or a check-in chat can help.
                 </li>
               ))}
             </ul>

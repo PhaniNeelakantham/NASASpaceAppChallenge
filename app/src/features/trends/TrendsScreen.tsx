@@ -1,3 +1,5 @@
+import { inl, ToneIcon } from '../../components/ToneIcon'
+import { ArrowDown, ArrowUp } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
   Area,
@@ -190,7 +192,7 @@ export function TrendsScreen({ readings }: { readings: Reading[] }) {
           {finding ? (
             <>
               <p className="text-3xl font-bold">
-                {finding.z >= 0 ? '▲' : '▼'} {fmt(Math.abs(finding.z))} <span className="text-base font-normal text-ink-dim">SD</span>
+                {finding.z >= 0 ? <ArrowUp className={inl} /> : <ArrowDown className={inl} />} {fmt(Math.abs(finding.z))} <span className="text-base font-normal text-ink-dim">SD</span>
               </p>
               <p className="mt-1 text-xs text-ink-dim">{finding.reason}</p>
             </>
@@ -208,16 +210,16 @@ export function TrendsScreen({ readings }: { readings: Reading[] }) {
           </h2>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-dim">
             <span>
-              <span className="text-accent">●</span> normal
+              <ToneIcon tone="nominal" className="text-accent" /> normal
             </span>
             <span>
-              <span className="text-caution">▲</span> caution
+              <ToneIcon tone="caution" className="text-caution" /> caution
             </span>
             <span>
-              <span className="text-warning">◆</span> warning
+              <ToneIcon tone="warning" className="text-warning" /> warning
             </span>
             <span>
-              <span className="text-nominal">▮</span> your normal range
+              <span aria-hidden className="inline-block h-3 w-2 rounded-sm bg-nominal/60" /> your normal range
             </span>
           </div>
         </div>

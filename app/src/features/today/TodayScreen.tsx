@@ -1,3 +1,5 @@
+import { inl, ToneIcon } from '../../components/ToneIcon'
+import { ArrowRight, Check, Clock, Flag } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BADGES, DAILY_TASKS, WATER_GOAL, WATER_ML, WEEKLY_TASKS, type RoutineTask } from '../../content/routine'
@@ -25,12 +27,12 @@ const OPEN_LABEL: Record<CareTool, string> = {
   landing: 'Start test',
 }
 
-const STATE_META: Record<TaskState, { shape: string; word: string; text: string; border: string }> = {
-  done: { shape: '●', word: 'Done', text: 'text-nominal', border: 'border-nominal/25' },
-  due: { shape: '▲', word: 'Due now', text: 'text-accent', border: 'border-accent/50 shadow-[0_0_24px_-8px_var(--color-accent)]' },
-  overdue: { shape: '◆', word: 'Overdue', text: 'text-caution', border: 'border-caution/45' },
-  upcoming: { shape: '○', word: 'Later', text: 'text-ink-dim', border: 'border-white/5' },
-  open: { shape: '○', word: 'This week', text: 'text-ink-dim', border: 'border-white/5' },
+const STATE_META: Record<TaskState, { shape: React.ReactNode; word: string; text: string; border: string }> = {
+  done: { shape: <ToneIcon tone="nominal" />, word: 'Done', text: 'text-nominal', border: 'border-nominal/25' },
+  due: { shape: <Clock aria-hidden className={inl} />, word: 'Due now', text: 'text-accent', border: 'border-accent/50 shadow-[0_0_24px_-8px_var(--color-accent)]' },
+  overdue: { shape: <ToneIcon tone="caution" />, word: 'Overdue', text: 'text-caution', border: 'border-caution/45' },
+  upcoming: { shape: <ToneIcon tone="nodata" />, word: 'Later', text: 'text-ink-dim', border: 'border-white/5' },
+  open: { shape: <ToneIcon tone="nodata" />, word: 'This week', text: 'text-ink-dim', border: 'border-white/5' },
 }
 
 const CREW_GOAL = 0.85
@@ -73,7 +75,7 @@ function TaskCard({ task, statuses, onCheckIn, onOpenCare }: { task: RoutineTask
     action =
       state === 'done' ? null : (
         <button onClick={onCheckIn} className={`${btn} bg-accent text-space-950 hover:brightness-110`}>
-          Start check-in →
+          Start check-in <ArrowRight className={inl} />
         </button>
       )
   } else if (task.action === 'water') {
@@ -122,7 +124,7 @@ function TaskCard({ task, statuses, onCheckIn, onOpenCare }: { task: RoutineTask
     action = (
       <div className="flex flex-wrap gap-2">
         <button onClick={() => onOpenCare(tool)} className={`${btn} bg-accent text-space-950 hover:brightness-110`}>
-          {OPEN_LABEL[tool]} →
+          {OPEN_LABEL[tool]} <ArrowRight className={inl} />
         </button>
         {tool === 'journal' && (
           <button onClick={() => r.complete(task.id, task.cadence)} className={`${btn} bg-space-800`}>
@@ -156,7 +158,7 @@ function TaskCard({ task, statuses, onCheckIn, onOpenCare }: { task: RoutineTask
         </span>
         {flagged && state !== 'done' && (
           <span className="rounded-full bg-caution/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-caution">
-            ▲ Priority · {SYSTEMS[task.system].label}
+            <Flag className={inl} /> Priority · {SYSTEMS[task.system].label}
           </span>
         )}
         <span className="ml-auto font-mono text-xs text-accent">+{task.xp} XP</span>
@@ -166,7 +168,7 @@ function TaskCard({ task, statuses, onCheckIn, onOpenCare }: { task: RoutineTask
       <p className="text-xs text-ink-dim">Why: {task.why}</p>
       {sickRest && state !== 'done' && (
         <p className="rounded-lg bg-warning/10 px-3 py-2 text-xs text-warning">
-          ◆ Fever flagged. Skip hard exercise today and rest. Logging a rest day keeps your streak.
+          <ToneIcon tone="warning" /> Fever flagged. Skip hard exercise today and rest. Logging a rest day keeps your streak.
         </p>
       )}
       {action && <div className="mt-1">{action}</div>}
@@ -301,7 +303,7 @@ export function TodayScreen({ statuses, env, onCheckIn, onOpenCare }: Props) {
                       aria-pressed={done}
                     >
                       <span className={`grid h-5 w-5 place-items-center rounded border ${done ? 'border-nominal bg-nominal text-space-950' : 'border-white/25'}`}>
-                        {done ? '✓' : ''}
+                        {done ? <Check aria-hidden className="h-4 w-4" /> : ''}
                       </span>
                       <span className={done ? 'text-ink-dim line-through' : ''}>{c}</span>
                       <span className="ml-auto font-mono text-xs text-accent">+10 XP</span>
@@ -356,7 +358,7 @@ export function TodayScreen({ statuses, env, onCheckIn, onOpenCare }: Props) {
           </div>
           {stats.checkinAtRisk && stats.streaks.checkin > 0 && (
             <p className="mt-3 rounded-lg bg-caution/10 px-3 py-2 text-xs text-caution">
-              ▲ Your {stats.streaks.checkin}-day check-in streak ends tonight. Do today’s check-in to keep it.
+              <ToneIcon tone="caution" /> Your {stats.streaks.checkin}-day check-in streak ends tonight. Do today’s check-in to keep it.
             </p>
           )}
           <div className="mt-3 flex justify-between gap-1">
@@ -384,7 +386,7 @@ export function TodayScreen({ statuses, env, onCheckIn, onOpenCare }: Props) {
             {BADGES.map((b) => {
               const got = stats.badges.has(b.id)
               return (
-                <div key={b.id} title={`${b.label} — ${b.how}`} className="flex flex-col items-center gap-1 text-center">
+                <div key={b.id} title={`${b.label}: ${b.how}`} className="flex flex-col items-center gap-1 text-center">
                   <span
                     className={`grid h-11 w-11 place-items-center rounded-lg border font-mono text-[11px] font-bold ${
                       got ? 'border-accent/50 bg-accent/10 text-accent' : 'border-white/10 text-white/25'

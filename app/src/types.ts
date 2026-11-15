@@ -41,7 +41,7 @@ export interface MetricDef {
   label: string
   unit: string
   system: SystemId
-  /** Absolute safety limits (warning). Values are draft — confirm with D before demo. */
+  /** Absolute safety limits (warning). Values are draft, confirm with D before demo. */
   warnLow?: number
   warnHigh?: number
   /** Personal-baseline deviation (z-score) that triggers caution. */

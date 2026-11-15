@@ -57,7 +57,7 @@ function rng(seed: number) {
 /**
  * Simulated routine history for the 30 days before `today`. Matches the stories in syntheticCrew:
  *  - c1 (sleep debt): skipped wind-down for the last 4 nights, reaction-test lapses rising
- *  - c2 (fever): rested instead of exercising yesterday — the right call when sick
+ *  - c2 (fever): rested instead of exercising yesterday, the right call when sick
  *  - c3 / c4: a missed check-in breaks their streak, so streaks differ across the crew
  */
 function seedHistory(crewId: string, today: Date): Record<string, DayLog> {

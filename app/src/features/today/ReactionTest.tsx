@@ -1,3 +1,4 @@
+import { ToneIcon } from '../../components/ToneIcon'
 import { useEffect, useRef, useState } from 'react'
 import type { PvtResult } from '../../state/routine'
 
@@ -75,7 +76,7 @@ export function ReactionTest({ onDone, onClose }: { onDone: (r: PvtResult) => vo
           {phase === 'go' && <span className="h-16 w-16 rounded-full bg-nominal shadow-[0_0_40px_var(--color-nominal)]" aria-label="Tap now" />}
           {phase === 'early' && (
             <span>
-              <b className="text-caution">▲ Too early</b>
+              <b className="text-caution"><ToneIcon tone="caution" /> Too early</b>
               <br />
               <span className="text-sm text-ink-dim">Tap to try this round again</span>
             </span>
@@ -93,10 +94,10 @@ export function ReactionTest({ onDone, onClose }: { onDone: (r: PvtResult) => vo
           </div>
           <p className="col-span-2 text-sm text-ink-dim">
             {lapses === 0 && median < 350
-              ? '● Within normal range: alert.'
+              ? <><ToneIcon tone="nominal" /> Within normal range: alert.</>
               : lapses <= 1
-                ? '▲ A little slow. Watch your sleep tonight.'
-                : '◆ Several lapses: you may be fatigued. Avoid critical tasks until you rest, and log your sleep.'}
+                ? <><ToneIcon tone="caution" /> A little slow. Watch your sleep tonight.</>
+                : <><ToneIcon tone="warning" /> Several lapses: you may be fatigued. Avoid critical tasks until you rest, and log your sleep.</>}
           </p>
         </div>
       )}

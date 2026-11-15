@@ -22,7 +22,7 @@ export interface CopilotProps {
   onChooseProtocol: (id: string, reason: string) => void
   /** Answer proposed by the AI and confirmed by the rescuer. */
   onAnswer: (answer: 'yes' | 'no' | 'done', reason: string) => void
-  /** Answer the rescuer said directly ("yes", "no", "done") — same as tapping the button. */
+  /** Answer the rescuer said directly ("yes", "no", "done"), same as tapping the button. */
   onDirectAnswer: (answer: 'yes' | 'no' | 'done') => void
   onLog: (text: string) => void
   onConsult: (summary: string) => void
@@ -43,7 +43,7 @@ interface Line {
 
 const protocolTitle = (id: string) => PROTOCOLS.find((p) => p.id === id)?.title ?? id
 const crewTitle = (id: string) => CREW.find((c) => c.id === id)?.name ?? id
-const GREETING = 'I’m HALO, and I’m with you. Tell me what happened — who is hurt and what do you see?'
+const GREETING = 'I’m HALO, and I’m with you. Tell me what happened. Who is hurt and what do you see?'
 
 /** Words handled on the device, with no AI call. */
 const norm = (t: string) => t.toLowerCase().replace(/[^a-z ]/g, '').trim()
@@ -162,7 +162,7 @@ export function EmergencyCopilot(p: CopilotProps) {
     const fresh: Suggestion[] = []
     for (const a of r.actions) {
       if (a.name === 'log_event' && typeof a.args.text === 'string') {
-        p.onLog(`AI noted: ${a.args.text}`) // low risk — recorded straight away, clearly labelled
+        p.onLog(`AI noted: ${a.args.text}`) // low risk, recorded straight away, clearly labelled
         continue
       }
       fresh.push({ key: ++keyRef.current, action: a, nodeId: p.currentNodeId, state: 'pending' })
@@ -255,7 +255,7 @@ export function EmergencyCopilot(p: CopilotProps) {
             {pending.map((s) => (
               <div key={s.key} className="flex flex-wrap items-center gap-3 rounded-xl border border-accent/40 bg-space-900/80 p-3">
                 <div className="min-w-0 flex-1">
-                  <div className="font-mono text-[10px] uppercase tracking-wider text-accent">HALO suggests — you decide</div>
+                  <div className="font-mono text-[10px] uppercase tracking-wider text-accent">HALO suggests, you decide</div>
                   <div className="text-lg font-bold">{label(s.action)}</div>
                   {typeof s.action.args.reason === 'string' && <div className="text-sm text-ink-dim">“{s.action.args.reason}”</div>}
                 </div>
@@ -304,7 +304,7 @@ export function EmergencyCopilot(p: CopilotProps) {
       </form>
       {speech.error && <p className="mt-1 text-xs text-caution">{speech.error}</p>}
       <p className="mt-2 text-[11px] text-ink-dim">
-        “Yes”, “no” and “done” answer the step on screen directly. HALO’s suggestions follow the checked step-by-step guide, and you confirm every one. Prototype — Claude Haiku.
+        “Yes”, “no” and “done” answer the step on screen directly. HALO’s suggestions follow the checked step-by-step guide, and you confirm every one. Prototype: Claude Haiku.
       </p>
     </section>
   )

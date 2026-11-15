@@ -1,3 +1,4 @@
+import { ToneIcon } from '../../components/ToneIcon'
 import { useEffect, useState } from 'react'
 import { DAY_MS, relTime, useCrewStore } from '../../state/crewStore'
 import { ENVIRONMENTS, type EnvironmentId } from '../../state/mission'
@@ -24,8 +25,8 @@ interface Result {
 const SYMPTOMS = ['Dizzy / light-headed', 'Blurry or grey vision', 'Nausea', 'Legs feel weak']
 const STEPS = [
   { key: 'lying', title: 'Lie down', secs: 300, text: 'Lie flat and still for 5 minutes, then measure blood pressure and heart rate.' },
-  { key: 'stand1', title: 'Stand up — 1 minute', secs: 60, text: 'Stand up (have a crewmate nearby). After 1 minute, measure again.' },
-  { key: 'stand3', title: 'Keep standing — 3 minutes', secs: 120, text: 'Stay standing, don’t lock your knees. At 3 minutes, measure one last time.' },
+  { key: 'stand1', title: 'Stand up: 1 minute', secs: 60, text: 'Stand up (have a crewmate nearby). After 1 minute, measure again.' },
+  { key: 'stand3', title: 'Keep standing: 3 minutes', secs: 120, text: 'Stay standing, don’t lock your knees. At 3 minutes, measure one last time.' },
 ] as const
 
 function score(lying: Vitals, s1: Vitals, s3: Vitals, symptoms: string[]) {
@@ -79,7 +80,7 @@ export function LandingTest({ crewId, env }: { crewId: string; env: EnvironmentI
   }
 
   const verdict = (sc: number) =>
-    sc >= 80 ? { t: '● Ready', c: 'text-nominal', bg: 'bg-nominal/10' } : sc >= 55 ? { t: '▲ Use caution', c: 'text-caution', bg: 'bg-caution/10' } : { t: '◆ Not ready', c: 'text-warning', bg: 'bg-warning/10' }
+    sc >= 80 ? { tone: 'nominal' as const, t: 'Ready', c: 'text-nominal', bg: 'bg-nominal/10' } : sc >= 55 ? { tone: 'caution' as const, t: 'Use caution', c: 'text-caution', bg: 'bg-caution/10' } : { tone: 'warning' as const, t: 'Not ready', c: 'text-warning', bg: 'bg-warning/10' }
 
   const num = 'min-h-11 w-20 rounded-lg border border-white/10 bg-black/30 px-2 text-center font-mono outline-none focus:border-accent/60'
 
@@ -158,7 +159,7 @@ export function LandingTest({ crewId, env }: { crewId: string; env: EnvironmentI
                 </div>
               </div>
             )}
-            <p className="rounded-lg bg-warning/10 p-2 text-xs text-warning">◆ If you feel faint at any point: sit or lie down right away and raise your legs. Stop the test.</p>
+            <p className="rounded-lg bg-warning/10 p-2 text-xs text-warning"><ToneIcon tone="warning" /> If you feel faint at any point: sit or lie down right away and raise your legs. Stop the test.</p>
             <button onClick={next} disabled={left > 0} className="min-h-12 rounded-lg bg-accent font-semibold text-space-950 disabled:opacity-40">
               {left > 0 ? 'Wait for the timer…' : step < STEPS.length - 1 ? 'Save & next step' : 'See result'}
             </button>
@@ -175,7 +176,7 @@ export function LandingTest({ crewId, env }: { crewId: string; env: EnvironmentI
                   {result.score}
                 </div>
                 <div>
-                  <div className={`text-2xl font-bold ${v.c}`}>{v.t}</div>
+                  <div className={`text-2xl font-bold ${v.c}`}><ToneIcon tone={v.tone} /> {v.t}</div>
                   <div className="font-mono text-xs text-ink-dim">
                     BP drop {s.sysDrop}/{s.diaDrop} mmHg · HR rise +{s.hrRise} bpm
                   </div>
@@ -218,10 +219,10 @@ export function LandingTest({ crewId, env }: { crewId: string; env: EnvironmentI
         </div>
         <p className="text-xs text-ink-dim">
           {history.length >= 2 && history[history.length - 1].score < history[history.length - 2].score - 10
-            ? '▲ Your score is falling. Step up cardio and talk to the crew surgeon about the landing plan.'
+            ? <><ToneIcon tone="caution" /> Your score is falling. Step up cardio and talk to the crew surgeon about the landing plan.</>
             : 'Test weekly in the last month before landing to see the trend.'}
         </p>
-        <p className="text-xs text-ink-dim">Crew: {crewId === 'c1' ? 'Commander — lands the vehicle, so readiness matters most.' : 'all crew test before entry.'}</p>
+        <p className="text-xs text-ink-dim">Crew: {crewId === 'c1' ? 'Commander: lands the vehicle, so readiness matters most.' : 'all crew test before entry.'}</p>
       </aside>
     </div>
   )

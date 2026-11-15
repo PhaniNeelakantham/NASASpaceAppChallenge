@@ -39,5 +39,5 @@ export function Tube({ points, radius, material, segments = 64 }: TubeProps) {
   return <mesh geometry={geometry} material={material} raycast={noRaycast} />
 }
 
-/** Anatomy is decorative — only health nodes take pointer events (keeps hover cheap and unambiguous). */
+/** Anatomy is decorative, only health nodes take pointer events (keeps hover cheap and unambiguous). */
 export function noRaycast() {}

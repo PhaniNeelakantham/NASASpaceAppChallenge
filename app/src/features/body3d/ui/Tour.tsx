@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 const STEPS: { title: string; body: string; place: string }[] = [
   {
     title: 'This is you',
-    body: 'The body shows how each part of you is doing today. Calm blue means fine. Amber ▲ means keep an eye on it. Red ◆ means act now.',
+    body: 'The body shows how each part of you is doing today. Calm blue means fine. Amber with a triangle means keep an eye on it. Red with an octagon means act now.',
     place: 'left-1/2 top-[38%] -translate-x-1/2',
   },
   {
@@ -19,7 +19,7 @@ const STEPS: { title: string; body: string; place: string }[] = [
   },
   {
     title: 'Where you are changes the advice',
-    body: 'Pick your environment at the top — station, spacecraft, rover, Moon or Mars base. HALO changes your priorities and how to reach help.',
+    body: 'Pick your environment at the top: station, spacecraft, rover, Moon or Mars base. HALO changes your priorities and how to reach help.',
     place: 'left-[330px] top-3',
   },
 ]
