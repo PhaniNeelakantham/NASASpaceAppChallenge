@@ -152,7 +152,7 @@ const STEPS = [
     eyebrow: 'Body map',
     title: 'The Body Map',
     text: 'A 3D body lights up each system by its status. Tap a point to see the reading, how far it is from your own normal, and what to do now. You can also log pain on specific parts of the body.',
-    points: ['Colour plus shape, never colour alone', 'Priorities change with the mission environment', 'Pain map and guided ultrasound self-scans'],
+    points: ['Highly Interactive', 'Priorities change with the mission environment', 'Pain map and guided ultrasound self-scans'],
   },
   {
     id: 'today',
@@ -166,7 +166,7 @@ const STEPS = [
     id: 'checkin',
     img: '/landing/checkin.webp',
     eyebrow: 'Check-in',
-    title: 'Vitals and symptoms in under a minute',
+    title: 'Measuring Vitals to keep Health in check',
     text: 'Step-by-step questions with how to measure each one. Answer by voice, hands free, or measure your pulse with the camera.',
     points: ['Hands-free voice answers', 'Camera pulse check, compared with the Bio-Monitor', 'Every answer becomes a trend'],
   },
@@ -174,7 +174,7 @@ const STEPS = [
     id: 'care',
     img: '/landing/care.webp',
     eyebrow: 'Care tools',
-    title: 'Tools for what space does to you',
+    title: 'Take Care of Yourself',
     text: 'Daily skin photos compared by AI, an Amsler grid for eye changes, buddy checks, a private journal, the med kit and a landing readiness test.',
     points: ['AI photo check: change tracking, not diagnosis', 'Buddy check catches what people underreport', 'Med kit stock, expiry and dose log'],
   },
@@ -182,7 +182,7 @@ const STEPS = [
     id: 'trends',
     img: '/landing/trends.webp',
     eyebrow: 'Trends',
-    title: 'Drift, measured against your own normal',
+    title: 'Check your measurements against the baseline',
     text: 'Every metric is shown against a personal baseline band with caution and warning limits, so slow changes stand out early.',
     points: ['Personal baselines, not population averages', 'Real Inspiration4 blood data from NASA OSDR', 'Flags say why and what to do'],
   },
@@ -190,7 +190,7 @@ const STEPS = [
     id: 'radiation',
     img: '/landing/radiation.webp',
     eyebrow: 'Radiation',
-    title: 'Space weather, with a plan',
+    title: 'Keep track of Radiation and Space Weather',
     text: 'Solar flares, CMEs and particle events from NASA DONKI become plain guidance: when to shelter, and what your daily dose looks like where you are.',
     points: ['Live NASA DONKI feed, with an offline snapshot', 'Dose by environment from published measurements', 'Shelter steps when a storm arrives'],
   },
@@ -290,7 +290,7 @@ export function Landing() {
           <div className="mx-auto max-w-7xl px-4 pt-24 sm:px-8">
             <Reveal>
               <Eyebrow>How it works</Eyebrow>
-              <h2 className="display mt-4 max-w-4xl text-[length:clamp(2.2rem,5.6vw,4.6rem)]">One app for the whole mission.</h2>
+              <h2 className="display mt-4 max-w-4xl text-[length:clamp(2.2rem,5.6vw,4.6rem)]">One app for everything Health-related</h2>
             </Reveal>
           </div>
 
@@ -492,7 +492,7 @@ const FOOTER: { title: string; links: FooterLink[] }[] = [
     ],
   },
   {
-    title: 'Real data we used',
+    title: 'Data we used',
     links: [
       { label: 'NASA OSDR · Inspiration4 blood counts (OSD-569)', href: 'https://osdr.nasa.gov/bio/repo/data/studies/OSD-569' },
       { label: 'NASA DONKI · flares, CMEs, particle events', href: 'https://kauai.ccmc.gsfc.nasa.gov/DONKI/' },
@@ -529,7 +529,7 @@ function Footer() {
         <div>
           <Logo size="lg" />
           <p className="mt-5 max-w-xs text-sm leading-relaxed text-ink-dim">
-            Health monitoring and emergency guidance for astronauts on missions where Earth is minutes away. Every screen marks whether its numbers are real NASA data or
+            Health monitoring and emergency guidance for astronauts on missions where communication with Earth is minutes away. Every screen marks whether its numbers are real NASA data or
             simulated.
           </p>
           <button onClick={() => openApp()} className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:underline">
