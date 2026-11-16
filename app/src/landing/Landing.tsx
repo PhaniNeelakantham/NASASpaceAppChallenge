@@ -197,10 +197,10 @@ export function Landing() {
             transition={{ duration: 0.8 }}
             className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-nominal"
           >
-            <span className="relative flex h-2 w-2">
+            {/* <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-nominal opacity-60" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-nominal" />
-            </span>
+            </span> */}
             <span>
               NASA Space Apps Challenge 2026 <span className="text-ink-dim">·</span> Create Health Monitoring Software for Astronauts on Space Missions
             </span>
@@ -208,10 +208,10 @@ export function Landing() {
 
           <div className="mt-10">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
-              <p className="max-w-xl text-xl font-semibold sm:text-2xl">Everything an astronaut needs for their health.</p>
+              <p className="max-w-xl text-xl font-semibold sm:text-2xl">A fully immersive health monitor for astronauts</p>
               <p className="mt-4 max-w-xl leading-relaxed text-ink-dim">
-                HALO watches each crew member's health at each part of their body, explains what changed and what to do, and talks the crew through a medical emergency
-                when the flight surgeon is too far away to help in time.
+                HALO analyzes each crew member's health at each part of their body, adapts itself based on the crew's environment, and talks the crew through a medical emergency
+                when necessary.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <button onClick={() => openApp()} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-accent px-6 font-semibold text-space-950 hover:brightness-110">
@@ -306,8 +306,7 @@ export function Landing() {
                 Help during <span className="text-warning">Emergency</span>
               </h2>
               <p className="mt-6 leading-relaxed text-ink-dim">
-                One red button opens a full-screen guide. HALO asks who needs help and what is happening, then coaches the rescuer one step at a time,
-                like an emergency dispatcher.
+                One red button opens a full-screen guide. HALO asks who needs help and what is happening, and coaches the rescuer through the emergency.
               </p>
               <ul className="mt-8 grid gap-4 sm:grid-cols-2">
                 {[
@@ -339,7 +338,7 @@ export function Landing() {
             <Eyebrow>Built for all missions</Eyebrow>
             <h2 className="display mt-4 max-w-4xl text-[length:clamp(2.2rem,5.6vw,4.6rem)]">From orbit to Mars.</h2>
             <p className="mt-6 max-w-2xl leading-relaxed text-ink-dim">
-              Based on the crew's location, HALO chooses which body systems matter most, how long communication with Earth takes, and what data to use.
+              Based on the crew's location, HALO chooses what body systems are most vulnerable, how long communication with Earth takes, and selects data for that specific environment.
             </p>
           </Reveal>
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
