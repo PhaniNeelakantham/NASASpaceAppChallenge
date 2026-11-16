@@ -93,55 +93,6 @@ function Eyebrow({ n, children, tone = 'text-accent' }: { n?: string; children: 
 }
 
 /* ------------------------------------------------------------------ */
-/* Heartbeat pieces: ECG trace, crew monitor and counting numbers      */
-/* ------------------------------------------------------------------ */
-
-/** An ECG trace across a 1200 x 100 box: flat line, then a heartbeat every 240 units. */
-function ecgPath(width = 1200, every = 240, base = 60) {
-  let d = `M0 ${base}`
-  for (let x = 40; x + 160 <= width; x += every) {
-    d += ` L${x} ${base} Q${x + 12} ${base - 10} ${x + 24} ${base} L${x + 44} ${base} L${x + 50} ${base + 8} L${x + 58} ${base - 52} L${x + 66} ${base + 22} L${x + 72} ${base} L${x + 96} ${base} Q${x + 112} ${base - 16} ${x + 128} ${base}`
-  }
-  return `${d} L${width} ${base}`
-}
-const ECG_PATH = ecgPath()
-
-/** Bedside-monitor style readout for the demo crew member. */
-function CrewMonitor() {
-  const read = [
-    { label: 'Heart rate', value: '72', unit: 'bpm', tone: 'text-nominal' },
-    { label: 'SpO₂', value: '98', unit: '%', tone: 'text-accent' },
-    { label: 'Temp', value: '38.6', unit: '°C', tone: 'text-warning' },
-    { label: 'Earth link', value: '18:40', unit: 'min', tone: 'text-caution' },
-  ]
-  return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/40 shadow-[0_20px_80px_-30px_rgba(45,212,191,0.35)]">
-      <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
-        <span className="text-sm font-semibold">Crew Medical Officer · Day 142</span>
-        <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-nominal">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-nominal" /> Live demo
-        </span>
-      </div>
-      <svg viewBox="0 0 1200 100" preserveAspectRatio="none" className="h-14 w-full bg-nominal/[0.03]" aria-hidden>
-        <path d={ECG_PATH} fill="none" stroke="rgba(45,212,191,0.25)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-        <path d={ECG_PATH} pathLength={1} fill="none" stroke="var(--color-nominal)" strokeWidth="2.5" vectorEffect="non-scaling-stroke" className="ecg-sweep" />
-      </svg>
-      <div className="grid grid-cols-2 sm:grid-cols-4">
-        {read.map((r, i) => (
-          <div key={r.label} className={`px-4 py-3 ${i > 0 ? 'sm:border-l' : ''} ${i % 2 ? 'border-l' : ''} ${i > 1 ? 'border-t sm:border-t-0' : ''} border-white/10`}>
-            <div className="text-[11px] text-ink-dim">{r.label}</div>
-            <div className={`mt-0.5 font-mono text-2xl font-semibold ${r.tone}`}>
-              {r.value}
-              <span className="ml-1 text-xs font-normal text-ink-dim">{r.unit}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
 /* Content                                                             */
 /* ------------------------------------------------------------------ */
 
@@ -255,7 +206,7 @@ export function Landing() {
             </span>
           </motion.h1>
 
-          <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div className="mt-10">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
               <p className="max-w-xl text-xl font-semibold sm:text-2xl">Everything an astronaut needs for their health.</p>
               <p className="mt-4 max-w-xl leading-relaxed text-ink-dim">
@@ -270,10 +221,6 @@ export function Landing() {
                   See how it works
                 </a>
               </div>
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.45 }} className="lg:w-[500px]">
-              <CrewMonitor />
             </motion.div>
           </div>
 
