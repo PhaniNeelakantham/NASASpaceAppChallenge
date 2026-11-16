@@ -257,7 +257,7 @@ export function Landing() {
 
           <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
-              <p className="max-w-xl text-xl font-semibold sm:text-2xl">Where astronaut health monitoring meets emergency guidance.</p>
+              <p className="max-w-xl text-xl font-semibold sm:text-2xl">Everything an astronaut needs for their health.</p>
               <p className="mt-4 max-w-xl leading-relaxed text-ink-dim">
                 HALO watches each crew member's health at each part of their body, explains what changed and what to do, and talks the crew through a medical emergency
                 when the flight surgeon is too far away to help in time.
